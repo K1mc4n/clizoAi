@@ -2,12 +2,8 @@ import { Metadata } from 'next';
 import { APP_NAME, APP_DESCRIPTION } from '~/lib/constants';
 import { getNeynarUser } from '~/lib/neynar';
 
-interface SharePageProps {
-  params: Promise<{ fid: string }>;
-}
-
-export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
-  const { fid } = await params;
+export async function generateMetadata({ params }: { params: { fid: string } }): Promise<Metadata> {
+  const { fid } = params;
   return {
     title: `${APP_NAME} - Profile ${fid}`,
     openGraph: {
@@ -18,10 +14,11 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   };
 }
 
-export default async function SharePage({ params }: SharePageProps) {
-  const { fid } = await params;
-  const user = await getNeynarUser(Number(fid));
+export default async function SharePage({ params }: { params: { fid: string } }) {
+  const { fid } = params;
 
+  // Fetch user profile
+  const user = await getNeynarUser(Number(fid));
   if (!user) {
     return (
       <main className="p-8 text-center">
@@ -30,9 +27,13 @@ export default async function SharePage({ params }: SharePageProps) {
     );
   }
 
+  // Fetch best friends
+  const bestFriendsRes = await fetch(`${process.env.APP_URL}/api/best-friends?fid=${fid}`);
+  const { bestFriends } = await bestFriendsRes.json();
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-8 flex flex-col items-center">
-      <section className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md text-center space-y-4 border border-gray-200">
+    <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-8 flex flex-col items-center space-y-6">
+      <section className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md text-center border border-gray-200 space-y-2">
         <img
           src={user.pfp_url}
           alt={user.username}
@@ -43,11 +44,15 @@ export default async function SharePage({ params }: SharePageProps) {
         <p className="text-sm text-gray-400">FID: {user.fid}</p>
       </section>
 
-      <section className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md mt-6 border border-gray-200">
-        <h2 className="text-xl font-medium mb-2">Best Friends</h2>
+      <section className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md border border-gray-200">
+        <h2 className="text-xl font-medium mb-4">Best Friends</h2>
         <ul className="space-y-2">
-          {/* Fetch and list best friends data using API or props */}
-          <li className="text-gray-500">Add best friends fetching logic...</li>
+          {bestFriends.map((bf: any) => (
+            <li key={bf.user.fid} className="flex items-center space-x-3">
+              <img src={bf.user.pfp_url} className="w-8 h-8 rounded-full border border-gray-200" />
+              <span>{bf.user.username}</span>
+            </li>
+          ))}
         </ul>
       </section>
     </main>
