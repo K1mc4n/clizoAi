@@ -15,6 +15,7 @@
     "@farcaster/frame-wagmi-connector": ">=0.0.19 <1.0.0",
     "@neynar/nodejs-sdk": "^2.19.0",
     "@neynar/react": "^1.2.2",
+    "@radix-ui/react-slot": "^1.2.3",
     "@solana/wallet-adapter-react": "^0.15.38",
     "@supabase/supabase-js": "^2.50.2",
     "@tanstack/react-query": "^5.61.0",
