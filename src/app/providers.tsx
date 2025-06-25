@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { MiniAppProvider } from "@neynar/react";
-import { SafeFarcasterSolanaProvider } from "~/components/providers/SafeFarcasterSolanaProvider";
 
 const WagmiProvider = dynamic(
   () => import("~/components/providers/WagmiProvider"),
@@ -10,13 +9,10 @@ const WagmiProvider = dynamic(
 );
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const solanaEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
   return (
     <WagmiProvider>
       <MiniAppProvider analyticsEnabled={true}>
-        <SafeFarcasterSolanaProvider endpoint={solanaEndpoint}>
-          {children}
-        </SafeFarcasterSolanaProvider>
+        {children}
       </MiniAppProvider>
     </WagmiProvider>
   );
