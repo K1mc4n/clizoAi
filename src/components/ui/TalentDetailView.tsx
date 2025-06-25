@@ -14,23 +14,16 @@ interface TalentDetailViewProps {
 
 export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: TalentDetailViewProps) => {
   const { switchChain } = useSwitchChain();
-  const { isConnected } = useAccount(); // <-- Gunakan ini untuk memeriksa status login wallet
+  const { isConnected } = useAccount();
   const isThisUser = loggedInUserAddress && talent.wallet_address.toLowerCase() === loggedInUserAddress.toLowerCase();
   
   const [tipStatus, setTipStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  const { sendTransaction, isPending } = useSendTransaction({
-    onSuccess: () => {
-      setTipStatus('success');
-      setTimeout(() => setTipStatus('idle'), 3000);
-    },
-    onError: () => {
-      setTipStatus('error');
-      setTimeout(() => setTipStatus('idle'), 3000);
-    },
-  });
+  
+  // --- PERBAIKAN DI SINI: Hook disederhanakan ---
+  const { sendTransaction, isPending } = useSendTransaction();
 
   const handleSendTip = () => {
-    if (!isConnected) { // <-- PERBAIKAN DI SINI
+    if (!isConnected) {
       alert("Please connect your wallet first to send a tip.");
       return;
     }
@@ -41,9 +34,19 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
     switchChain({ chainId: base.id }, {
       onSuccess: () => {
         setTipStatus('pending');
+        // --- PERBAIKAN DI SINI: Callback dipindahkan ke dalam pemanggilan fungsi ---
         sendTransaction({
           to: talent.wallet_address as `0x${string}`,
           value: parseEther('0.001'),
+        }, {
+          onSuccess: () => {
+            setTipStatus('success');
+            setTimeout(() => setTipStatus('idle'), 3000);
+          },
+          onError: () => {
+            setTipStatus('error');
+            setTimeout(() => setTipStatus('idle'), 3000);
+          },
         });
       },
       onError: () => {
