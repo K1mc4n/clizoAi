@@ -22,7 +22,7 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
       setTipStatus('success');
       setTimeout(() => setTipStatus('idle'), 3000);
     },
-    onError: () => {
+    onError: (error) => {
       setTipStatus('error');
       setTimeout(() => setTipStatus('idle'), 3000);
     },
