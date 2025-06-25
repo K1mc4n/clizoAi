@@ -29,8 +29,9 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json({ talents: data.talents });
 
-  } catch (error: any) {
+  } catch (error: unknown) { // <-- PERBAIKAN DI SINI
     console.error('Failed to fetch talent list:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch talent list.' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ error: errorMessage || 'Failed to fetch talent list.' }, { status: 500 });
   }
 }
