@@ -7,21 +7,23 @@ export async function GET(request: NextRequest) {
 
   if (!apiKey) {
     console.error("Server-side error: TALENT_PROTOCOL_API_KEY is not set in Vercel Environment Variables.");
-    return NextResponse.json({ error: 'Server configuration error. API key is missing.' }, { status: 500 });
+    return NextResponse.json({ error: 'Server configuration error: Missing API Key.' }, { status: 500 });
   }
 
   try {
-    let apiUrl = `https://api.talentprotocol.com/api/v2/talents`;
-    if (query) {
-      apiUrl += `?q=${encodeURIComponent(query)}`;
-    }
+    // --- PERBAIKAN DI SINI ---
+    // Endpoint yang benar untuk search adalah /talents/search
+    // Jika tidak ada query, kita panggil /talents
+    let apiUrl = query 
+      ? `https://api.talentprotocol.com/api/v2/talents/search?q=${encodeURIComponent(query)}`
+      : `https://api.talentprotocol.com/api/v2/talents`;
 
     const response = await fetch(apiUrl, {
         headers: { 
           'X-API-KEY': apiKey,
           'Accept': 'application/json' 
         },
-        next: { revalidate: 300 }
+        next: { revalidate: 300 } // Cache selama 5 menit
       }
     );
 
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    // API Talent Protocol membungkus data di dalam `talents`. Mari kita kembalikan itu.
+    // Respons dari /talents/search dan /talents sama-sama ada di dalam properti 'talents'
     return NextResponse.json({ talents: data.talents });
 
   } catch (error: unknown) {
