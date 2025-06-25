@@ -11,11 +11,12 @@ export const metadata: Metadata = {
     images: [APP_SPLASH_URL], 
   },
   other: {
+    // Ini adalah metadata paling penting agar aplikasi Anda bisa diluncurkan dari Farcaster
     'fc:frame': 'vNext',
     'fc:frame:image': APP_SPLASH_URL,
     'fc:frame:button:1': 'Launch App',
     'fc:frame:button:1:action': 'link',
-    'fc:frame:button:1:target': `${APP_URL}/app`, 
+    'fc:frame:button:1:target': `${APP_URL}/app`, // Targetkan ke halaman aplikasi utama kita
   },
 };
 
