@@ -16,7 +16,6 @@ import { truncateAddress } from "~/lib/truncateAddress";
 
 export type Tab = 'home' | 'bookmarks' | 'wallet';
 
-// Menambahkan deklarasi prop 'title'
 export default function Demo({ title }: { title?: string }) {
   const { isSDKLoaded, context } = useMiniApp();
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -44,9 +43,15 @@ export default function Demo({ title }: { title?: string }) {
     setError(null);
     try {
       const response = await fetch(`/api/talent/list?q=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error('Failed to fetch talents');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to fetch talents. Status: ${response.status}`);
+      }
+
       const data = await response.json();
       const newTalents: TalentProfile[] = data.talents || [];
+
       setTalents(newTalents);
       setAllFetchedTalents(prev => {
         const newMap = new Map(prev);
@@ -62,8 +67,9 @@ export default function Demo({ title }: { title?: string }) {
   }, []);
 
   useEffect(() => {
+    // Hanya fetch data jika tab 'home' aktif atau jika data bookmark dibutuhkan tapi belum ada
     if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
-      fetchTalents(debouncedSearchTerm);
+        fetchTalents(debouncedSearchTerm);
     }
   }, [debouncedSearchTerm, activeTab, fetchTalents, allFetchedTalents.size]);
   
@@ -83,7 +89,7 @@ export default function Demo({ title }: { title?: string }) {
 
   const toggleBookmark = async (talent: TalentProfile) => {
     if (!userFid) {
-      alert("Please open in Farcaster to use bookmarks.");
+      alert("Please open in a Farcaster client to use bookmarks.");
       return;
     };
     const isBookmarked = bookmarks.includes(talent.username);
@@ -100,7 +106,10 @@ export default function Demo({ title }: { title?: string }) {
   const handleBackToList = () => setSelectedTalent(null);
 
   useEffect(() => {
-    if(activeTab !== 'home' && activeTab !== 'bookmarks') setSelectedTalent(null);
+    // Kembali ke daftar jika tab diganti
+    if(selectedTalent) {
+        setSelectedTalent(null);
+    }
   }, [activeTab]);
 
   if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading SDK...</div>;
@@ -115,7 +124,7 @@ export default function Demo({ title }: { title?: string }) {
         <Input type="text" placeholder="Search by name, skill..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
       {isLoading && <>{Array.from({ length: 3 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
-      {error && <div className="text-center py-10 text-red-500">Error: {error}</div>}
+      {error && <div className="text-center py-10 text-red-500">{error}</div>}
       {!isLoading && !error && (
         <div className="animate-fade-in">
           {talents.length > 0 ? (
@@ -129,10 +138,10 @@ export default function Demo({ title }: { title?: string }) {
   );
 
   const renderBookmarks = () => {
-    const bTalents = getBookmarkedTalents();
     if (!isLoggedIn) {
         return <div className="text-center py-10 text-gray-500">Please open in a Farcaster client to see your bookmarks.</div>
     }
+    const bTalents = getBookmarkedTalents();
     return (
       <div className="animate-fade-in">
         {bTalents.length > 0 ? (
@@ -167,4 +176,4 @@ export default function Demo({ title }: { title?: string }) {
       </div>
     </div>
   );
-                            }
+}
