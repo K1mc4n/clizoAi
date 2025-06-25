@@ -1,15 +1,13 @@
-// File: src/app/api/users/list/route.ts
-
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data agar konsisten dengan yang diharapkan frontend
 export interface FarcasterUser {
   username: string;
-  name: string; // Menggunakan display_name sebagai name
-  headline: string; // Menggunakan bio.text sebagai headline
+  name: string;
+  headline: string;
   profile_picture_url: string;
-  wallet_address: string; // Menggunakan verified_addresses.eth_addresses[0]
+  wallet_address: string;
   fid: number;
 }
 
@@ -19,17 +17,20 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get('q');
 
   if (!apiKey) {
-    console.error("Server-side error: NEYNAR_API_KEY is not set in Vercel Environment Variables.");
-    return NextResponse.json({ error: 'Server configuration error: Missing API Key.' }, { status: 500 });
+    return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
   }
 
   try {
+    // --- PERBAIKAN DI SINI ---
+    // Constructor NeynarAPIClient mengharapkan string, bukan objek. Kode ini sudah benar.
     const neynar = new NeynarAPIClient(apiKey);
+    // -------------------------
+    
     let users: any[] = [];
 
     if (query && query.trim() !== '') {
       // Jika ada query, gunakan endpoint pencarian user Neynar
-      const response = await neynar.searchUser(query, 1); // viewerFid (arg 2) bisa diisi 1
+      const response = await neynar.searchUser(query, 1); // viewerFid bisa diisi 1
       users = response.result.users;
     } else {
       // Jika tidak ada query, ambil daftar cast dari channel populer untuk mendapatkan FIDs
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Format data dari Neynar agar sesuai dengan interface yang diharapkan frontend
+    // Format data dari Neynar agar sesuai dengan interface `TalentProfile` di frontend
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
       name: user.display_name,
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       wallet_address: user.verified_addresses.eth_addresses[0] || '', // Ambil dompet pertama
       fid: user.fid,
     }));
-
+    
     // Kirim respons dengan key 'talents' agar frontend tidak perlu diubah banyak
     return NextResponse.json({ talents: formattedUsers });
 
