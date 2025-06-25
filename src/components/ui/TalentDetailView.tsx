@@ -3,7 +3,7 @@ import { useSendTransaction, useSwitchChain } from 'wagmi';
 import { parseEther } from 'viem';
 import { base } from 'wagmi/chains';
 import { TalentProfile } from './TalentCard';
-import { Button } from './Button';
+import { Button } from './Button'; // <-- Sekarang akan mengimpor tombol yang sudah di-upgrade
 import { ShareButton } from './Share';
 
 interface TalentDetailViewProps {
@@ -19,19 +19,19 @@ export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddre
   
   const [tipStatus, setTipStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const { sendTransaction, isPending } = useSendTransaction({
-    onSuccess: (hash) => {
+    onSuccess: () => {
       setTipStatus('success');
       setTimeout(() => setTipStatus('idle'), 3000);
     },
-    onError: (error) => {
+    onError: () => {
       setTipStatus('error');
       setTimeout(() => setTipStatus('idle'), 3000);
     },
   });
 
   const handleSendTip = () => {
-    if (!isLoggedIn) {
-      alert("Please connect your wallet to send a tip.");
+    if (!isConnected) { // <-- Pengecekan baru untuk UX
+      alert("Please connect your wallet first to send a tip.");
       return;
     }
     if (!talent.wallet_address) {
@@ -61,7 +61,7 @@ export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddre
 
   return (
     <div className="w-full max-w-md mx-auto p-4 animate-fade-in">
-      <Button onClick={onBack} className="mb-4 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+      <Button onClick={onBack} variant="outline" className="w-auto px-4 mb-4">
         ← Back to List
       </Button>
 
@@ -92,7 +92,7 @@ export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddre
             className="w-full"
           />
            <a href={`https://beta.talentprotocol.com/u/${talent.username}`} target="_blank" rel="noopener noreferrer" className="w-full">
-            <Button className="w-full bg-blue-500 hover:bg-blue-600">View on Talent Protocol</Button>
+            <Button variant="secondary" className="w-full">View on Talent Protocol</Button>
            </a>
         </div>
       </div>
