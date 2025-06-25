@@ -138,7 +138,7 @@ export default function Demo() {
   return (
     <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0, paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0 }}>
       <div className="mx-auto py-2 px-4 pb-20">
-        <Header neynarUser={userFid ? { fid: userFid } : undefined} />
+        <Header neynarUser={userFid ? { fid: userFid, score: 0 } : undefined} />
         <h1 className="text-2xl font-bold text-center mb-4">Discovery Talent Web3</h1>
         {selectedTalent ? (
           <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={context?.user?.connected_address} />
