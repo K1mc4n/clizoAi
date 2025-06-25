@@ -16,7 +16,8 @@ import { truncateAddress } from "~/lib/truncateAddress";
 
 export type Tab = 'home' | 'bookmarks' | 'wallet';
 
-export default function Demo() {
+// Menambahkan deklarasi prop 'title'
+export default function Demo({ title }: { title?: string }) {
   const { isSDKLoaded, context } = useMiniApp();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   
@@ -52,7 +53,7 @@ export default function Demo() {
         newTalents.forEach(t => newMap.set(t.username, t));
         return newMap;
       });
-    } catch (err: unknown) { // <-- PERBAIKAN 1
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
     } finally {
@@ -61,10 +62,10 @@ export default function Demo() {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'home') {
+    if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
       fetchTalents(debouncedSearchTerm);
     }
-  }, [debouncedSearchTerm, activeTab, fetchTalents]);
+  }, [debouncedSearchTerm, activeTab, fetchTalents, allFetchedTalents.size]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -82,7 +83,7 @@ export default function Demo() {
 
   const toggleBookmark = async (talent: TalentProfile) => {
     if (!userFid) {
-      alert("Please login via Farcaster to use bookmarks.");
+      alert("Please open in Farcaster to use bookmarks.");
       return;
     };
     const isBookmarked = bookmarks.includes(talent.username);
@@ -120,7 +121,6 @@ export default function Demo() {
           {talents.length > 0 ? (
             talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
-            // PERBAIKAN 2: Menggunakan apostrof
             <div className="text-center py-10 text-gray-500">No talents found for '{debouncedSearchTerm}'.</div>
           )}
         </div>
@@ -148,9 +148,9 @@ export default function Demo() {
     <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0, paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0 }}>
       <div className="mx-auto py-2 px-4 pb-20">
         <Header neynarUser={userFid ? { fid: userFid, score: 0 } : undefined} />
-        <h1 className="text-2xl font-bold text-center mb-4">Discovery Talent Web3</h1>
+        <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
         {selectedTalent ? (
-          <TalentDetailView talent={selectedTalent} onBack={handleBackToList} isLoggedIn={isConnected} loggedInUserAddress={address} />
+          <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={address} />
         ) : (
           <>
             {activeTab === 'home' && renderHome()}
@@ -167,4 +167,4 @@ export default function Demo() {
       </div>
     </div>
   );
-}
+                            }
