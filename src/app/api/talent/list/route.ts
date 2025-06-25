@@ -2,48 +2,54 @@ import { NextResponse, NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.TALENT_PROTOCOL_API_KEY;
+
+  if (!apiKey) {
+    console.error("SERVER ERROR: TALENT_PROTOCOL_API_KEY is not configured in Vercel.");
+    return NextResponse.json({ error: 'Server configuration error: API Key is missing.' }, { status: 500 });
+  }
+
+  // 1. Ambil query pencarian 'q' dari URL request
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
 
-  if (!apiKey) {
-    console.error("Server-side error: TALENT_PROTOCOL_API_KEY is not set.");
-    return NextResponse.json({ error: 'Server configuration error: Missing API Key.' }, { status: 500 });
+  // 2. Bangun URL API Talent Protocol dengan benar
+  const apiUrl = new URL("https://api.talentprotocol.com/api/v2/talents");
+  if (query) {
+    apiUrl.searchParams.append('q', query);
   }
 
+  console.log(`Forwarding request to Talent Protocol API: ${apiUrl.toString()}`);
+
   try {
-    // --- PERBAIKAN UTAMA: Menggunakan endpoint /search ---
-    // Endpoint ini lebih umum dan kemungkinan besar yang benar.
-    // Jika tidak ada query, kita tetap mengirim query kosong agar API tetap merespons.
-    const searchQuery = query || ''; 
-    const apiUrl = `https://api.talentprotocol.com/api/v2/search?q=${encodeURIComponent(searchQuery)}`;
-    
-    console.log(`Server Log: Attempting fetch from: ${apiUrl}`);
+    // 3. Lakukan panggilan fetch dengan header yang benar
+    const response = await fetch(apiUrl.toString(), {
+      method: 'GET',
+      headers: { 
+        'X-API-KEY': apiKey,
+        'Accept': 'application/json' 
+      },
+      // Cache data untuk mengurangi beban API
+      next: { revalidate: 300 } 
+    });
 
-    const response = await fetch(apiUrl, {
-        headers: { 
-          'X-API-KEY': apiKey,
-          'Accept': 'application/json' 
-        },
-        next: { revalidate: 300 }
-      }
-    );
-
-    console.log(`Server Log: Talent Protocol API responded with status: ${response.status}`);
-
-    const contentType = response.headers.get("content-type");
-    if (!response.ok || !contentType || !contentType.includes("application/json")) {
-        const responseText = await response.text();
-        console.error(`Talent Protocol API non-JSON response. Status: ${response.status}. Body:`, responseText);
-        return NextResponse.json({ error: `Invalid response from Talent Protocol. Status: ${response.status}` }, { status: 502 });
+    // 4. Periksa apakah respons dari Talent Protocol berhasil
+    if (!response.ok) {
+      // Jika gagal, log error dan kirim pesan yang jelas ke frontend
+      const errorBody = await response.json();
+      console.error(`Talent Protocol API responded with error: ${response.status}`, errorBody);
+      return NextResponse.json(
+        { error: `Upstream API Error: ${errorBody.error || response.statusText}` }, 
+        { status: response.status }
+      );
     }
-    
+
+    // 5. Jika berhasil, parse JSON dan kirimkan ke frontend
     const data = await response.json();
-    
-    // Endpoint /search membungkus data di dalam `results`.
-    return NextResponse.json({ talents: data.results });
+    return NextResponse.json(data); // API mereka sudah mengembalikan objek dengan key 'talents', jadi kita bisa langsung forward
 
   } catch (error: unknown) {
-    console.error('Internal server error during fetch operation:', error);
+    // 6. Tangani error jaringan atau error internal lainnya
+    console.error('Internal Server Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json({ error: `Internal Server Error: ${errorMessage}` }, { status: 500 });
   }
