@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { useSendTransaction, useSwitchChain } from 'wagmi';
+import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
 import { parseEther } from 'viem';
 import { base } from 'wagmi/chains';
 import { TalentProfile } from './TalentCard';
-import { Button } from './Button'; // <-- Sekarang akan mengimpor tombol yang sudah di-upgrade
+import { Button } from './Button';
 import { ShareButton } from './Share';
 
 interface TalentDetailViewProps {
   talent: TalentProfile;
   onBack: () => void;
-  isLoggedIn: boolean;
   loggedInUserAddress?: string | null;
 }
 
-export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddress }: TalentDetailViewProps) => {
+export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: TalentDetailViewProps) => {
   const { switchChain } = useSwitchChain();
+  const { isConnected } = useAccount(); // <-- Gunakan ini untuk memeriksa status login wallet
   const isThisUser = loggedInUserAddress && talent.wallet_address.toLowerCase() === loggedInUserAddress.toLowerCase();
   
   const [tipStatus, setTipStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
@@ -30,7 +30,7 @@ export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddre
   });
 
   const handleSendTip = () => {
-    if (!isConnected) { // <-- Pengecekan baru untuk UX
+    if (!isConnected) { // <-- PERBAIKAN DI SINI
       alert("Please connect your wallet first to send a tip.");
       return;
     }
@@ -46,7 +46,7 @@ export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddre
           value: parseEther('0.001'),
         });
       },
-      onError: (error) => {
+      onError: () => {
         alert(`Please switch to the Base network in your wallet to send a tip.`);
       }
     });
