@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get('q');
 
   if (!apiKey) {
-    return NextResponse.json({ error: 'Talent Protocol API key is not configured.' }, { status: 500 });
+    console.error("Server-side error: TALENT_PROTOCOL_API_KEY is not set in Vercel Environment Variables.");
+    return NextResponse.json({ error: 'Server configuration error. API key is missing.' }, { status: 500 });
   }
 
   try {
@@ -16,22 +17,30 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(apiUrl, {
-        headers: { 'X-API-KEY': apiKey },
+        headers: { 
+          'X-API-KEY': apiKey,
+          'Accept': 'application/json' 
+        },
         next: { revalidate: 300 }
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Talent Protocol API error: ${response.statusText}`);
+      const errorBody = await response.json();
+      console.error(`Talent Protocol API responded with error: ${response.status}`, errorBody);
+      return NextResponse.json(
+        { error: `Failed to fetch from Talent Protocol. Status: ${response.status}. Message: ${errorBody.error || response.statusText}` }, 
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
+    // API Talent Protocol membungkus data di dalam `talents`. Mari kita kembalikan itu.
     return NextResponse.json({ talents: data.talents });
 
-  } catch (error: unknown) { // <-- PERBAIKAN DI SINI
-    console.error('Failed to fetch talent list:', error);
+  } catch (error: unknown) {
+    console.error('Internal server error while fetching from Talent Protocol:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json({ error: errorMessage || 'Failed to fetch talent list.' }, { status: 500 });
+    return NextResponse.json({ error: `Internal Server Error: ${errorMessage}` }, { status: 500 });
   }
 }
