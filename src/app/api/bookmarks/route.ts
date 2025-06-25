@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Pastikan variabel env di-set di Vercel
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
 
 export async function GET(request: NextRequest) {
@@ -33,10 +32,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (action === 'remove') {
-    const { error } = await supabase
-      .from('bookmarks')
-      .delete()
-      .match({ user_fid, talent_username });
+    const { error } = await supabase.from('bookmarks').delete().match({ user_fid, talent_username });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ message: 'Bookmark removed' });
   }
