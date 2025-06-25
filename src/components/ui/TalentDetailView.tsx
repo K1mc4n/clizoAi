@@ -18,8 +18,6 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
   const isThisUser = loggedInUserAddress && talent.wallet_address.toLowerCase() === loggedInUserAddress.toLowerCase();
   
   const [tipStatus, setTipStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  
-  // --- PERBAIKAN DI SINI: Hook disederhanakan ---
   const { sendTransaction, isPending } = useSendTransaction();
 
   const handleSendTip = () => {
@@ -28,13 +26,12 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
       return;
     }
     if (!talent.wallet_address) {
-      alert("This talent doesn't have a wallet address connected.");
+      alert("This user doesn't have a verified wallet address to receive tips.");
       return;
     }
     switchChain({ chainId: base.id }, {
       onSuccess: () => {
         setTipStatus('pending');
-        // --- PERBAIKAN DI SINI: Callback dipindahkan ke dalam pemanggilan fungsi ---
         sendTransaction({
           to: talent.wallet_address as `0x${string}`,
           value: parseEther('0.001'),
@@ -83,19 +80,19 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
           <p className="mt-4 text-gray-700 dark:text-gray-300 text-lg">{talent.headline}</p>
         </div>
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 space-y-3">
-          <Button onClick={handleSendTip} disabled={isThisUser || isPending} className="w-full bg-green-500 hover:bg-green-600 text-white">
+          <Button onClick={handleSendTip} disabled={isThisUser || isPending || !talent.wallet_address} className="w-full bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-400">
             {getButtonText()}
           </Button>
           <ShareButton
-            buttonText="Share This Talent Profile"
+            buttonText="Share This Profile"
             cast={{
-              text: `Check out this awesome talent, @${talent.username} on @talentprotocol! 🚀`,
+              text: `Check out this Farcaster user, @${talent.username}!`,
               embeds: [`${process.env.NEXT_PUBLIC_URL}/app`],
             }}
             className="w-full"
           />
-           <a href={`https://beta.talentprotocol.com/u/${talent.username}`} target="_blank" rel="noopener noreferrer" className="w-full">
-            <Button variant="secondary" className="w-full">View on Talent Protocol</Button>
+           <a href={`https://warpcast.com/${talent.username}`} target="_blank" rel="noopener noreferrer" className="w-full">
+            <Button variant="secondary" className="w-full">View on Warpcast</Button>
            </a>
         </div>
       </div>
