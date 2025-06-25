@@ -38,24 +38,24 @@ export default function Demo({ title }: { title?: string }) {
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
 
-  const fetchTalents = useCallback(async (query: string) => {
+  const fetchUsers = useCallback(async (query: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/talent/list?q=${encodeURIComponent(query)}`);
+      // Menggunakan endpoint API user yang baru
+      const response = await fetch(`/api/users/list?q=${encodeURIComponent(query)}`);
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to fetch talents. Status: ${response.status}`);
+        throw new Error(errorData.error || `Failed to fetch users. Status: ${response.status}`);
       }
 
       const data = await response.json();
-      const newTalents: TalentProfile[] = data.talents || [];
-
-      setTalents(newTalents);
+      const newUsers: TalentProfile[] = data.talents || []; // API kita mengembalikan dengan key 'talents'
+      setTalents(newUsers);
       setAllFetchedTalents(prev => {
         const newMap = new Map(prev);
-        newTalents.forEach(t => newMap.set(t.username, t));
+        newUsers.forEach(t => newMap.set(t.username, t));
         return newMap;
       });
     } catch (err: unknown) {
@@ -67,11 +67,10 @@ export default function Demo({ title }: { title?: string }) {
   }, []);
 
   useEffect(() => {
-    // Hanya fetch data jika tab 'home' aktif atau jika data bookmark dibutuhkan tapi belum ada
     if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
-        fetchTalents(debouncedSearchTerm);
+      fetchUsers(debouncedSearchTerm);
     }
-  }, [debouncedSearchTerm, activeTab, fetchTalents, allFetchedTalents.size]);
+  }, [debouncedSearchTerm, activeTab, fetchUsers, allFetchedTalents.size]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -106,7 +105,6 @@ export default function Demo({ title }: { title?: string }) {
   const handleBackToList = () => setSelectedTalent(null);
 
   useEffect(() => {
-    // Kembali ke daftar jika tab diganti
     if(selectedTalent) {
         setSelectedTalent(null);
     }
@@ -121,16 +119,16 @@ export default function Demo({ title }: { title?: string }) {
   const renderHome = () => (
     <>
       <div className="px-2 mb-4">
-        <Input type="text" placeholder="Search by name, skill..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        <Input type="text" placeholder="Search Farcaster users..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
-      {isLoading && <>{Array.from({ length: 3 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
+      {isLoading && <>{Array.from({ length: 5 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
       {error && <div className="text-center py-10 text-red-500">{error}</div>}
       {!isLoading && !error && (
         <div className="animate-fade-in">
           {talents.length > 0 ? (
             talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
-            <div className="text-center py-10 text-gray-500">No talents found for '{debouncedSearchTerm}'.</div>
+            <div className="text-center py-10 text-gray-500">No users found for '{debouncedSearchTerm}'.</div>
           )}
         </div>
       )}
@@ -147,7 +145,7 @@ export default function Demo({ title }: { title?: string }) {
         {bTalents.length > 0 ? (
           bTalents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={true} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn} />)
         ) : (
-          <div className="text-center py-10 text-gray-500">You have no bookmarked talents yet. <br/> Go to Home to find and star talents!</div>
+          <div className="text-center py-10 text-gray-500">You have no bookmarked talents yet. <br/> Go to Home to find and star users!</div>
         )}
       </div>
     )
