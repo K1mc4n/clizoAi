@@ -36,6 +36,7 @@ export default function Demo() {
   const { connect, connectors } = useConnect();
   
   const userFid = context?.user?.fid;
+  const isLoggedIn = !!userFid;
 
   const fetchTalents = useCallback(async (query: string) => {
     setIsLoading(true);
@@ -59,10 +60,10 @@ export default function Demo() {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'home') {
-      fetchTalents(debouncedSearchTerm);
+    if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
+        fetchTalents(debouncedSearchTerm);
     }
-  }, [debouncedSearchTerm, activeTab, fetchTalents]);
+  }, [debouncedSearchTerm, activeTab, fetchTalents, allFetchedTalents.size]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -79,7 +80,10 @@ export default function Demo() {
   }, [userFid]);
 
   const toggleBookmark = async (talent: TalentProfile) => {
-    if (!userFid) return;
+    if (!userFid) {
+      alert("Please login via Farcaster to use bookmarks.");
+      return;
+    };
     const isBookmarked = bookmarks.includes(talent.username);
     const action = isBookmarked ? 'remove' : 'add';
     setBookmarks(prev => isBookmarked ? prev.filter(b => b !== talent.username) : [...prev, talent.username]);
@@ -108,12 +112,12 @@ export default function Demo() {
       <div className="px-2 mb-4">
         <Input type="text" placeholder="Search by name, skill..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
-      {isLoading && Array.from({ length: 3 }).map((_, i) => <TalentCardSkeleton key={i} />)}
+      {isLoading && <>{Array.from({ length: 3 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
       {error && <div className="text-center py-10 text-red-500">Error: {error}</div>}
       {!isLoading && !error && (
         <div className="animate-fade-in">
           {talents.length > 0 ? (
-            talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={!!userFid}/>)
+            talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
             <div className="text-center py-10 text-gray-500">No talents found for "{debouncedSearchTerm}".</div>
           )}
@@ -124,10 +128,13 @@ export default function Demo() {
 
   const renderBookmarks = () => {
     const bTalents = getBookmarkedTalents();
+    if (!isLoggedIn) {
+        return <div className="text-center py-10 text-gray-500">Please open in a Farcaster client to see your bookmarks.</div>
+    }
     return (
       <div className="animate-fade-in">
         {bTalents.length > 0 ? (
-          bTalents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={true} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={!!userFid} />)
+          bTalents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={true} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn} />)
         ) : (
           <div className="text-center py-10 text-gray-500">You have no bookmarked talents yet. <br/> Go to Home to find and star talents!</div>
         )}
@@ -141,7 +148,7 @@ export default function Demo() {
         <Header neynarUser={userFid ? { fid: userFid, score: 0 } : undefined} />
         <h1 className="text-2xl font-bold text-center mb-4">Discovery Talent Web3</h1>
         {selectedTalent ? (
-          <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={context?.user?.connected_address} />
+          <TalentDetailView talent={selectedTalent} onBack={handleBackToList} isLoggedIn={isConnected} loggedInUserAddress={address} />
         ) : (
           <>
             {activeTab === 'home' && renderHome()}
