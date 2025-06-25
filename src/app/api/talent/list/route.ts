@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(apiUrl, {
         headers: { 'X-API-KEY': apiKey },
-        next: { revalidate: 300 } // Cache for 5 minutes
+        next: { revalidate: 300 }
       }
     );
 
