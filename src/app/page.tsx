@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+// Impor diperbaiki dari '@/lib/constants' menjadi '~/lib/constants'
+import { APP_NAME, APP_DESCRIPTION, APP_SPLASH_URL, APP_URL } from "~/lib/constants";
 
 export const metadata: Metadata = {
   title: `${APP_NAME} - Discover Web3 Talents`,
@@ -7,16 +8,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    // Ganti dengan URL gambar OG statis Anda jika ada
-    images: [`${process.env.NEXT_PUBLIC_URL}/splash.png`],
+    images: [APP_SPLASH_URL], 
   },
   other: {
-    // fc:frame di-nonaktifkan karena kita fokus pada Mini App, bukan frame statis
-    // "fc:frame": "vNext",
-    // "fc:frame:image": `${process.env.NEXT_PUBLIC_URL}/splash.png`,
-    // 'fc:frame:button:1': 'Launch App',
-    // 'fc:frame:button:1:action': 'link',
-    // 'fc:frame:button:1:target': `${process.env.NEXT_PUBLIC_URL}/app`,
+    'fc:frame': 'vNext',
+    'fc:frame:image': APP_SPLASH_URL,
+    'fc:frame:button:1': 'Launch App',
+    'fc:frame:button:1:action': 'link',
+    'fc:frame:button:1:target': `${APP_URL}/app`, 
   },
 };
 
@@ -26,7 +25,15 @@ export default function Home() {
       <div className="text-center space-y-4">
         <h1 className="text-5xl font-bold text-[#7C65C1]">{APP_NAME}</h1>
         <p className="text-xl text-gray-600 dark:text-gray-300">{APP_DESCRIPTION}</p>
-        <p className="text-md text-gray-500">Open this in a Farcaster client like Warpcast to use the Mini App.</p>
+        <a 
+          href="/app" 
+          className="inline-block mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Launch App
+        </a>
+        <p className="text-md text-gray-500 mt-2">
+            Or open this in a Farcaster client like Warpcast to use the Mini App.
+        </p>
       </div>
     </main>
   );
