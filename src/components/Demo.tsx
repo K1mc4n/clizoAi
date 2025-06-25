@@ -42,7 +42,6 @@ export default function Demo({ title }: { title?: string }) {
     setIsLoading(true);
     setError(null);
     try {
-      // Menggunakan endpoint API user yang baru
       const response = await fetch(`/api/users/list?q=${encodeURIComponent(query)}`);
       
       if (!response.ok) {
@@ -51,7 +50,7 @@ export default function Demo({ title }: { title?: string }) {
       }
 
       const data = await response.json();
-      const newUsers: TalentProfile[] = data.talents || []; // API kita mengembalikan dengan key 'talents'
+      const newUsers: TalentProfile[] = data.talents || [];
       setTalents(newUsers);
       setAllFetchedTalents(prev => {
         const newMap = new Map(prev);
@@ -108,7 +107,7 @@ export default function Demo({ title }: { title?: string }) {
     if(selectedTalent) {
         setSelectedTalent(null);
     }
-  }, [activeTab]);
+  }, [activeTab, selectedTalent]); // <-- PERBAIKAN ESLINT
 
   if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading SDK...</div>;
   
