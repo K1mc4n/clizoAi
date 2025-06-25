@@ -9,10 +9,11 @@ import { ShareButton } from './Share';
 interface TalentDetailViewProps {
   talent: TalentProfile;
   onBack: () => void;
+  isLoggedIn: boolean;
   loggedInUserAddress?: string | null;
 }
 
-export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: TalentDetailViewProps) => {
+export const TalentDetailView = ({ talent, onBack, isLoggedIn, loggedInUserAddress }: TalentDetailViewProps) => {
   const { switchChain } = useSwitchChain();
   const isThisUser = loggedInUserAddress && talent.wallet_address.toLowerCase() === loggedInUserAddress.toLowerCase();
   
@@ -29,6 +30,10 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
   });
 
   const handleSendTip = () => {
+    if (!isLoggedIn) {
+      alert("Please connect your wallet to send a tip.");
+      return;
+    }
     if (!talent.wallet_address) {
       alert("This talent doesn't have a wallet address connected.");
       return;
@@ -42,13 +47,13 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
         });
       },
       onError: (error) => {
-        alert(`Please switch to Base network to send a tip.`);
+        alert(`Please switch to the Base network in your wallet to send a tip.`);
       }
     });
   };
 
   const getButtonText = () => {
-    if (isPending || tipStatus === 'pending') return 'Processing Tip...';
+    if (isPending || tipStatus === 'pending') return 'Processing...';
     if (tipStatus === 'success') return 'Tip Sent! 🎉';
     if (tipStatus === 'error') return 'Tip Failed';
     return 'Support with 0.001 ETH on Base';
@@ -56,7 +61,7 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
 
   return (
     <div className="w-full max-w-md mx-auto p-4 animate-fade-in">
-      <Button onClick={onBack} variant="outline" className="mb-4">
+      <Button onClick={onBack} className="mb-4 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
         ← Back to List
       </Button>
 
@@ -82,12 +87,12 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
             buttonText="Share This Talent Profile"
             cast={{
               text: `Check out this awesome talent, @${talent.username} on @talentprotocol! 🚀`,
-              embeds: [`${process.env.NEXT_PUBLIC_URL}`],
+              embeds: [`${process.env.NEXT_PUBLIC_URL}/app`],
             }}
             className="w-full"
           />
            <a href={`https://beta.talentprotocol.com/u/${talent.username}`} target="_blank" rel="noopener noreferrer" className="w-full">
-            <Button variant="secondary" className="w-full">View on Talent Protocol</Button>
+            <Button className="w-full bg-blue-500 hover:bg-blue-600">View on Talent Protocol</Button>
            </a>
         </div>
       </div>
