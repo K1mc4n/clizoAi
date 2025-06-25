@@ -1,9 +1,11 @@
-// src/app/api/talent/list/route.ts
+// src/app/api/talent/list/route.ts (VERSI DIPERBARUI)
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) { // Gunakan NextRequest untuk akses searchParams
   const apiKey = process.env.TALENT_PROTOCOL_API_KEY;
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get('q'); // Ambil parameter 'q'
 
   if (!apiKey) {
     return NextResponse.json(
@@ -13,15 +15,17 @@ export async function GET() {
   }
 
   try {
-    // Endpoint ini mengambil daftar talenta (sesuaikan jika ada endpoint yang lebih baik)
-    const response = await fetch(
-      `https://api.talentprotocol.com/api/v2/talents`, 
-      {
+    // Bangun URL API berdasarkan ada atau tidaknya query
+    let apiUrl = `https://api.talentprotocol.com/api/v2/talents`;
+    if (query) {
+      apiUrl += `?q=${encodeURIComponent(query)}`;
+    }
+
+    const response = await fetch(apiUrl, {
         headers: {
           'X-API-KEY': apiKey,
         },
-        // Revalidate setiap 10 menit
-        next: { revalidate: 600 }
+        next: { revalidate: 300 } // Revalidate setiap 5 menit
       }
     );
 
