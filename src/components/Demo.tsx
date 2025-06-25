@@ -52,18 +52,19 @@ export default function Demo() {
         newTalents.forEach(t => newMap.set(t.username, t));
         return newMap;
       });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) { // <-- PERBAIKAN 1
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
-        fetchTalents(debouncedSearchTerm);
+    if (activeTab === 'home') {
+      fetchTalents(debouncedSearchTerm);
     }
-  }, [debouncedSearchTerm, activeTab, fetchTalents, allFetchedTalents.size]);
+  }, [debouncedSearchTerm, activeTab, fetchTalents]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -119,7 +120,8 @@ export default function Demo() {
           {talents.length > 0 ? (
             talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
-            <div className="text-center py-10 text-gray-500">No talents found for "{debouncedSearchTerm}".</div>
+            // PERBAIKAN 2: Menggunakan apostrof
+            <div className="text-center py-10 text-gray-500">No talents found for '{debouncedSearchTerm}'.</div>
           )}
         </div>
       )}
