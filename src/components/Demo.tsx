@@ -3,16 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useMiniApp } from "@neynar/react";
+import { useDebounce } from 'use-debounce';
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/input";
-import { USE_WALLET } from "~/lib/constants";
 import { TalentCard, type TalentProfile } from "./ui/TalentCard";
 import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
+import { USE_WALLET } from "~/lib/constants";
 import { truncateAddress } from "~/lib/truncateAddress";
-import { useDebounce } from 'use-debounce';
 
 export type Tab = 'home' | 'bookmarks' | 'wallet';
 
@@ -20,6 +20,7 @@ export default function Demo() {
   const { isSDKLoaded, context } = useMiniApp();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   
+  const [allFetchedTalents, setAllFetchedTalents] = useState<Map<string, TalentProfile>>(new Map());
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +30,7 @@ export default function Demo() {
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [bookmarkedTalents, setBookmarkedTalents] = useState<TalentProfile[]>([]);
-
+  
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { connect, connectors } = useConnect();
@@ -44,7 +44,13 @@ export default function Demo() {
       const response = await fetch(`/api/talent/list?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error('Failed to fetch talents');
       const data = await response.json();
-      setTalents(data.talents || []);
+      const newTalents: TalentProfile[] = data.talents || [];
+      setTalents(newTalents);
+      setAllFetchedTalents(prev => {
+        const newMap = new Map(prev);
+        newTalents.forEach(t => newMap.set(t.username, t));
+        return newMap;
+      });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -58,33 +64,25 @@ export default function Demo() {
     }
   }, [debouncedSearchTerm, activeTab, fetchTalents]);
   
-  const fetchAndSetBookmarks = useCallback(async () => {
-    if (!userFid) return;
-    try {
-      const response = await fetch(`/api/bookmarks?fid=${userFid}`);
-      const data = await response.json();
-      if (response.ok) {
-        const bookmarkedUsernames = data.map((b: { talent_username: string }) => b.talent_username);
-        setBookmarks(bookmarkedUsernames);
-      }
-    } catch (e) {
-      console.error("Failed to fetch bookmarks:", e);
-    }
-  }, [userFid]);
-
   useEffect(() => {
+    const fetchAndSetBookmarks = async () => {
+      if (!userFid) return;
+      try {
+        const response = await fetch(`/api/bookmarks?fid=${userFid}`);
+        const data = await response.json();
+        if (response.ok) {
+          setBookmarks(data.map((b: { talent_username: string }) => b.talent_username));
+        }
+      } catch (e) { console.error("Failed to fetch bookmarks:", e); }
+    };
     fetchAndSetBookmarks();
   }, [userFid]);
 
   const toggleBookmark = async (talent: TalentProfile) => {
     if (!userFid) return;
-
     const isBookmarked = bookmarks.includes(talent.username);
     const action = isBookmarked ? 'remove' : 'add';
-
-    // Optimistic UI update
     setBookmarks(prev => isBookmarked ? prev.filter(b => b !== talent.username) : [...prev, talent.username]);
-    
     await fetch('/api/bookmarks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -96,14 +94,13 @@ export default function Demo() {
   const handleBackToList = () => setSelectedTalent(null);
 
   useEffect(() => {
-    if(activeTab !== 'home') setSelectedTalent(null);
+    if(activeTab !== 'home' && activeTab !== 'bookmarks') setSelectedTalent(null);
   }, [activeTab]);
 
   if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading SDK...</div>;
   
   const getBookmarkedTalents = () => {
-    const allTalents = talents; // We can expand this later to include talents from other sources
-    return allTalents.filter(t => bookmarks.includes(t.username));
+    return bookmarks.map(username => allFetchedTalents.get(username)).filter(Boolean) as TalentProfile[];
   }
 
   const renderHome = () => (
@@ -141,9 +138,8 @@ export default function Demo() {
   return (
     <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0, paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0 }}>
       <div className="mx-auto py-2 px-4 pb-20">
-        <Header neynarUser={userFid ? { fid: userFid } : null} />
+        <Header neynarUser={userFid ? { fid: userFid } : undefined} />
         <h1 className="text-2xl font-bold text-center mb-4">Discovery Talent Web3</h1>
-
         {selectedTalent ? (
           <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={context?.user?.connected_address} />
         ) : (
@@ -158,7 +154,6 @@ export default function Demo() {
             )}
           </>
         )}
-        
         {!selectedTalent && <Footer activeTab={activeTab} setActiveTab={setActiveTab} showWallet={USE_WALLET} />}
       </div>
     </div>
