@@ -18,7 +18,7 @@ interface TalentCardProps {
 
 export const TalentCard = ({ talent, onClick, isBookmarked, onToggleBookmark, isLoggedIn }: TalentCardProps) => {
   const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click when bookmarking
+    e.stopPropagation();
     onToggleBookmark();
   };
 
@@ -30,7 +30,7 @@ export const TalentCard = ({ talent, onClick, isBookmarked, onToggleBookmark, is
       <div className="flex items-center p-4">
         <img
           className="w-16 h-16 rounded-full object-cover mr-4"
-          src={talent.profile_picture_url || '/default-avatar.png'} // Fallback image
+          src={talent.profile_picture_url || '/default-avatar.png'}
           alt={`Profile of ${talent.name}`}
         />
         <div className="flex-grow">
