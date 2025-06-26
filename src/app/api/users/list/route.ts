@@ -1,4 +1,5 @@
-import { NeynarAPIClient, FeedType } from '@neynar/nodejs-sdk'; // <-- Perbaikan #1
+// Perbaikan #1: Import 'FetchFeedType' bukan 'FeedType'
+import { NeynarAPIClient, FetchFeedType } from '@neynar/nodejs-sdk'; 
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data agar konsisten dengan yang diharapkan frontend
@@ -29,15 +30,13 @@ export async function GET(request: NextRequest) {
       const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
-      // --- PERBAIKAN #2 ---
-      // Metode fetchFeed sekarang menggunakan enum FeedType.Channel
+      // Perbaikan #2: Gunakan enum yang benar yaitu FetchFeedType.Channel
       const feed = await neynar.fetchFeed({
-        feedType: FeedType.Channel, 
+        feedType: FetchFeedType.Channel, 
         channelId: 'neynar',
         limit: 25,
       });
-      // -----------------------------
-
+      
       const fids = feed.casts.map(cast => cast.author.fid);
       const uniqueFids = [...new Set(fids)];
 
