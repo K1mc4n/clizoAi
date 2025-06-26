@@ -14,22 +14,23 @@ export interface FarcasterUser {
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
+  const query = searchParams.get('q'); // query bisa jadi null
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
   }
 
   try {
-    // --- PERBAIKAN DI SINI ---
-    // Constructor NeynarAPIClient mengharapkan string, bukan objek. Kode ini sudah benar.
-  const neynar = new NeynarAPIClient({ apiKey: apiKey }); 
-    // -------------------------
+    // --- PERBAIKAN #1 ---
+    // Constructor NeynarAPIClient sekarang menerima objek, bukan string.
+    const neynar = new NeynarAPIClient({ apiKey });
     
     let users: any[] = [];
 
     if (query && query.trim() !== '') {
-const response = await neynar.searchUser(query); 
+      // --- PERBAIKAN #2 ---
+      // Metode searchUser juga mengharapkan sebuah objek dengan properti 'q'.
+      const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
       // Jika tidak ada query, ambil daftar cast dari channel populer untuk mendapatkan FIDs
@@ -43,17 +44,18 @@ const response = await neynar.searchUser(query);
       }
     }
 
-    // Format data dari Neynar agar sesuai dengan interface `TalentProfile` di frontend
+    // Format data dari Neynar agar sesuai dengan interface FarcasterUser
+    // Ditambahkan pengecekan opsional (?) untuk menghindari error jika data tidak ada
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
       name: user.display_name,
-      headline: user.profile.bio.text || 'A Farcaster user.', // Fallback jika bio kosong
+      headline: user.profile?.bio?.text || 'A Farcaster user.', // Fallback jika bio kosong
       profile_picture_url: user.pfp_url,
-      wallet_address: user.verified_addresses.eth_addresses[0] || '', // Ambil dompet pertama
+      wallet_address: user.verified_addresses?.eth_addresses?.[0] || '', // Ambil dompet pertama dengan aman
       fid: user.fid,
     }));
     
-    // Kirim respons dengan key 'talents' agar frontend tidak perlu diubah banyak
+    // Kirim respons dengan key 'talents' agar frontend tidak perlu diubah
     return NextResponse.json({ talents: formattedUsers });
 
   } catch (error: unknown) {
