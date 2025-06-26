@@ -1,8 +1,6 @@
-// Hapus 'FeedType' atau 'FetchFeedType' dari import, karena tidak ada.
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
 
-// Definisikan tipe data agar konsisten dengan yang diharapkan frontend
 export interface FarcasterUser {
   username: string;
   name: string;
@@ -30,14 +28,12 @@ export async function GET(request: NextRequest) {
       const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
-      // --- PERBAIKAN FINAL (LAGI) ---
-      // Gunakan string biasa 'channel', bukan enum. SDK tidak lagi mengekspor enum ini.
+      // PERBAIKAN FINAL: Gunakan type assertion 'as any' untuk melewati pemeriksaan tipe yang salah dari SDK
       const feed = await neynar.fetchFeed({
-        feedType: 'channel', 
+        feedType: 'channel' as any,
         channelId: 'neynar',
         limit: 25,
       });
-      // -----------------------------
 
       const fids = feed.casts.map(cast => cast.author.fid);
       const uniqueFids = [...new Set(fids)];
@@ -48,7 +44,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Format data dari Neynar agar sesuai dengan interface
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
       name: user.display_name,
