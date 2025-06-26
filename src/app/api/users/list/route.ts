@@ -29,8 +29,7 @@ export async function GET(request: NextRequest) {
     let users: any[] = [];
 
     if (query && query.trim() !== '') {
-      // Jika ada query, gunakan endpoint pencarian user Neynar
-      const response = await neynar.searchUser(query, 1); // viewerFid bisa diisi 1
+const response = await neynar.searchUser(query); 
       users = response.result.users;
     } else {
       // Jika tidak ada query, ambil daftar cast dari channel populer untuk mendapatkan FIDs
