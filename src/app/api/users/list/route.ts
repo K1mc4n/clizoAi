@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   try {
     // --- PERBAIKAN DI SINI ---
     // Constructor NeynarAPIClient mengharapkan string, bukan objek. Kode ini sudah benar.
-    const neynar = new NeynarAPIClient(apiKey);
+  const neynar = new NeynarAPIClient({ apiKey: apiKey }); 
     // -------------------------
     
     let users: any[] = [];
