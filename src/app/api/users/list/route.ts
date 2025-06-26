@@ -28,9 +28,8 @@ export async function GET(request: NextRequest) {
       const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
-      // PERBAIKAN FINAL: Gunakan type assertion 'as any' untuk melewati pemeriksaan tipe yang salah dari SDK
       const feed = await neynar.fetchFeed({
-        feedType: 'channel' as any,
+        feedType: 'channel' as any, // Workaround untuk bug typing di SDK
         channelId: 'neynar',
         limit: 25,
       });
@@ -39,7 +38,10 @@ export async function GET(request: NextRequest) {
       const uniqueFids = [...new Set(fids)];
 
       if (uniqueFids.length > 0) {
-        const bulkUsersResponse = await neynar.fetchBulkUsers(uniqueFids);
+        // --- PERBAIKAN TERAKHIR DI SINI ---
+        // Metode fetchBulkUsers juga mengharapkan sebuah objek
+        const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: uniqueFids });
+        // ---------------------------------
         users = bulkUsersResponse.users;
       }
     }
