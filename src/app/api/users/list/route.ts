@@ -14,27 +14,32 @@ export interface FarcasterUser {
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q'); // query bisa jadi null
+  const query = searchParams.get('q');
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
   }
 
   try {
-    // --- PERBAIKAN #1 ---
-    // Constructor NeynarAPIClient sekarang menerima objek, bukan string.
+    // Constructor NeynarAPIClient menerima objek
     const neynar = new NeynarAPIClient({ apiKey });
     
     let users: any[] = [];
 
     if (query && query.trim() !== '') {
-      // --- PERBAIKAN #2 ---
-      // Metode searchUser juga mengharapkan sebuah objek dengan properti 'q'.
+      // Metode searchUser menerima objek dengan properti 'q'
       const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
-      // Jika tidak ada query, ambil daftar cast dari channel populer untuk mendapatkan FIDs
-      const feed = await neynar.fetchFeed('channel', { channelId: 'neynar', limit: 25 });
+      // --- PERBAIKAN FINAL DI SINI ---
+      // Metode fetchFeed sekarang juga menerima satu objek tunggal
+      const feed = await neynar.fetchFeed({
+        feedType: 'channel',
+        channelId: 'neynar',
+        limit: 25,
+      });
+      // -----------------------------
+
       const fids = feed.casts.map(cast => cast.author.fid);
       const uniqueFids = [...new Set(fids)];
 
@@ -44,18 +49,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Format data dari Neynar agar sesuai dengan interface FarcasterUser
-    // Ditambahkan pengecekan opsional (?) untuk menghindari error jika data tidak ada
+    // Format data dari Neynar agar sesuai dengan interface
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
       name: user.display_name,
-      headline: user.profile?.bio?.text || 'A Farcaster user.', // Fallback jika bio kosong
+      headline: user.profile?.bio?.text || 'A Farcaster user.',
       profile_picture_url: user.pfp_url,
-      wallet_address: user.verified_addresses?.eth_addresses?.[0] || '', // Ambil dompet pertama dengan aman
+      wallet_address: user.verified_addresses?.eth_addresses?.[0] || '',
       fid: user.fid,
     }));
     
-    // Kirim respons dengan key 'talents' agar frontend tidak perlu diubah
     return NextResponse.json({ talents: formattedUsers });
 
   } catch (error: unknown) {
