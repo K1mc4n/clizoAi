@@ -12,9 +12,7 @@ export interface FarcasterUser {
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
-
+  
   if (!apiKey) {
     return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
   }
@@ -24,27 +22,26 @@ export async function GET(request: NextRequest) {
     
     let users: any[] = [];
 
-    if (query && query.trim() !== '') {
-      const response = await neynar.searchUser({ q: query });
-      users = response.result.users;
-    } else {
-      const feed = await neynar.fetchFeed({
-        feedType: 'channel' as any, // Workaround untuk bug typing di SDK
-        channelId: 'neynar',
-        limit: 25,
-      });
+    // --- PERBAIKAN: FUNGSI PENCARIAN DINONAKTIFKAN ---
+    // Karena paket gratis tidak mendukung endpoint searchUser, kita akan selalu
+    // mengambil daftar pengguna dari feed channel 'neynar' sebagai gantinya.
 
-      const fids = feed.casts.map(cast => cast.author.fid);
-      const uniqueFids = [...new Set(fids)];
+    const feed = await neynar.fetchFeed({
+      feedType: 'channel' as any, // Menggunakan 'as any' untuk bug typing di SDK
+      channelId: 'neynar',
+      limit: 25,
+    });
 
-      if (uniqueFids.length > 0) {
-        // --- PERBAIKAN TERAKHIR DI SINI ---
-        // Metode fetchBulkUsers juga mengharapkan sebuah objek
-        const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: uniqueFids });
-        // ---------------------------------
-        users = bulkUsersResponse.users;
-      }
+    const fids = feed.casts.map(cast => cast.author.fid);
+    const uniqueFids = [...new Set(fids)];
+
+    if (uniqueFids.length > 0) {
+      const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: uniqueFids });
+      users = bulkUsersResponse.users;
     }
+
+    // Blok 'if (query)' sebelumnya telah dihapus seluruhnya.
+    // ----------------------------------------------------
 
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
