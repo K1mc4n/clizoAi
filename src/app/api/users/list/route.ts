@@ -10,9 +10,16 @@ export interface FarcasterUser {
   fid: number;
 }
 
-// FID Anda untuk selalu ditampilkan di atas
-const MY_FID = 250575;
-const USER_LIMIT = 100;
+// --- SOLUSI FINAL: DAFTAR PENGGUNA PILIHAN (CURATED LIST) ---
+// Daftar ini HANYA menggunakan endpoint fetchBulkUsers yang sudah terbukti GRATIS.
+const CURATED_FIDS = [
+  250575, // Akun Anda!
+  2, 3, 5, 6, 7, 8, 9, 10, 13, 40, 48, 50, 61, 95, 109, 133, 143, 147, 150, 153, 159, 191, 194, 195, 207, 214, 222, 225,
+  238, 244, 250, 253, 259, 269, 271, 281, 292, 313, 333, 347, 350, 370, 397, 401, 403, 417, 420, 439, 440, 453, 455, 484,
+  503, 521, 538, 555, 558, 560, 564, 574, 582, 592, 602, 608, 612, 613, 620, 631, 642, 650, 666, 688, 701, 712, 747, 750,
+  777, 800, 808, 818, 888, 909, 923, 933, 955, 961, 999, 1001, 1104, 1111, 1121, 1177, 1234, 1337, 1990, 2000, 2001, 2023, 4242
+];
+// --------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -23,26 +30,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const neynar = new NeynarAPIClient({ apiKey });
-    let users: any[] = [];
     
-    // Ambil feed dari channel populer untuk mendapatkan FID yang aktif
-    const feed = await neynar.fetchFeed({
-      feedType: 'channel' as any, // Workaround untuk bug typing di SDK
-      channelId: 'farcaster', // Channel yang lebih umum dan aktif
-      limit: 150, // Ambil lebih banyak untuk memastikan kita dapat 100 FID unik
-    });
-
-    // Kumpulkan semua FID dari feed dan tambahkan FID Anda
-    const fidsFromFeed = feed.casts.map(cast => cast.author.fid);
-    
-    // Gabungkan FID Anda, hapus duplikat, dan batasi jumlahnya
-    const uniqueFids = [...new Set([MY_FID, ...fidsFromFeed])].slice(0, USER_LIMIT);
-
-    if (uniqueFids.length > 0) {
-      // Ambil detail pengguna untuk FID yang sudah dikumpulkan
-      const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: uniqueFids });
-      users = bulkUsersResponse.users;
-    }
+    // Langsung gunakan daftar FID yang sudah kita siapkan
+    const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: CURATED_FIDS });
+    const users = bulkUsersResponse.users;
 
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
@@ -53,11 +44,13 @@ export async function GET(request: NextRequest) {
       fid: user.fid,
     }));
     
-    // Pastikan profil Anda selalu ada di urutan pertama
+    // Urutkan untuk memastikan profil Anda selalu di atas
     formattedUsers.sort((a, b) => {
         if (a.fid === MY_FID) return -1;
         if (b.fid === MY_FID) return 1;
-        return 0; // Pertahankan urutan asli untuk sisanya
+        // Anda bisa menambahkan logika pengurutan lain di sini jika mau,
+        // misalnya berdasarkan username atau nama.
+        return 0; 
     });
     
     return NextResponse.json({ talents: formattedUsers });
@@ -65,12 +58,6 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     console.error('Error fetching from Neynar API:', errorMessage);
-    
-    // Fallback jika fetchFeed gagal (misalnya karena error 402)
-    if (errorMessage.includes('402')) {
-        return NextResponse.json({ error: 'The feature to fetch a dynamic feed may require a paid Neynar plan. Please contact support or check your plan.' }, { status: 402 });
-    }
-    
     return NextResponse.json({ error: `Internal Server Error: ${errorMessage}` }, { status: 500 });
   }
 }
