@@ -1,4 +1,4 @@
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient, FeedType } from '@neynar/nodejs-sdk'; // <-- Perbaikan #1
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data agar konsisten dengan yang diharapkan frontend
@@ -21,20 +21,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Constructor NeynarAPIClient menerima objek
     const neynar = new NeynarAPIClient({ apiKey });
     
     let users: any[] = [];
 
     if (query && query.trim() !== '') {
-      // Metode searchUser menerima objek dengan properti 'q'
       const response = await neynar.searchUser({ q: query });
       users = response.result.users;
     } else {
-      // --- PERBAIKAN FINAL DI SINI ---
-      // Metode fetchFeed sekarang juga menerima satu objek tunggal
+      // --- PERBAIKAN #2 ---
+      // Metode fetchFeed sekarang menggunakan enum FeedType.Channel
       const feed = await neynar.fetchFeed({
-        feedType: 'channel',
+        feedType: FeedType.Channel, 
         channelId: 'neynar',
         limit: 25,
       });
