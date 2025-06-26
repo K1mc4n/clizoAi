@@ -12,36 +12,23 @@ export interface FarcasterUser {
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
-  
+
   if (!apiKey) {
     return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
   }
 
+  console.log('API: Running diagnostic test for fetchBulkUsers...');
+
   try {
     const neynar = new NeynarAPIClient({ apiKey });
     
-    let users: any[] = [];
+    // HANYA MELAKUKAN SATU PANGGILAN API YANG PALING DASAR
+    // Kita akan mencoba mengambil data untuk FID 2 (v.eth, salah satu pendiri Farcaster)
+    const testFids = [2]; 
+    const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: testFids });
+    const users = bulkUsersResponse.users;
 
-    // --- PERBAIKAN: FUNGSI PENCARIAN DINONAKTIFKAN ---
-    // Karena paket gratis tidak mendukung endpoint searchUser, kita akan selalu
-    // mengambil daftar pengguna dari feed channel 'neynar' sebagai gantinya.
-
-    const feed = await neynar.fetchFeed({
-      feedType: 'channel' as any, // Menggunakan 'as any' untuk bug typing di SDK
-      channelId: 'neynar',
-      limit: 25,
-    });
-
-    const fids = feed.casts.map(cast => cast.author.fid);
-    const uniqueFids = [...new Set(fids)];
-
-    if (uniqueFids.length > 0) {
-      const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: uniqueFids });
-      users = bulkUsersResponse.users;
-    }
-
-    // Blok 'if (query)' sebelumnya telah dihapus seluruhnya.
-    // ----------------------------------------------------
+    console.log(`API: Successfully fetched ${users.length} user(s).`);
 
     const formattedUsers: FarcasterUser[] = users.map(user => ({
       username: user.username,
@@ -56,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    console.error('Error fetching from Neynar API:', errorMessage);
-    return NextResponse.json({ error: `Internal Server Error: ${errorMessage}` }, { status: 500 });
+    console.error('DIAGNOSTIC TEST FAILED:', errorMessage);
+    return NextResponse.json({ error: `Diagnostic test failed: ${errorMessage}` }, { status: 500 });
   }
 }
