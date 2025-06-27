@@ -7,8 +7,7 @@ import { base } from 'wagmi/chains';
 import { TalentProfile } from './TalentCard';
 import { Button } from './Button';
 import { ShareButton } from './Share';
-// --- PERBAIKAN DI SINI: Tambahkan baris impor ini ---
-import { APP_NAME, APP_URL } from '~/lib/constants'; 
+import { APP_NAME, APP_URL } from '~/lib/constants'; // <-- PERBAIKAN: Baris ini ditambahkan
 
 interface TalentDetailViewProps {
   talent: TalentProfile;
