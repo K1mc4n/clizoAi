@@ -1,3 +1,5 @@
+// src/components/ui/Share.tsx
+
 'use client';
 
 import { useCallback, useState } from 'react';
@@ -5,7 +7,6 @@ import { Button } from './Button';
 import { useMiniApp } from '@neynar/react';
 import { type ComposeCast } from "@farcaster/frame-sdk";
 
-// ... (Interface tetap sama)
 interface CastConfig extends Omit<ComposeCast.Options, 'embeds'> {
   embeds?: (string | { url: string })[];
 }
@@ -16,7 +17,6 @@ interface ShareButtonProps {
   className?: string;
   isLoading?: boolean;
 }
-
 
 export function ShareButton({ buttonText, cast, className = '', isLoading = false }: ShareButtonProps) {
   const { actions } = useMiniApp();
@@ -30,15 +30,14 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
         typeof embed === 'string' ? embed : embed.url
       );
 
-      // --- PERBAIKAN DI BAWAH INI ---
-      // Hapus argumen kedua ('share-button')
+      // PERBAIKAN: Argumen kedua telah dihapus dari pemanggilan fungsi ini.
       await actions.composeCast({
         text: cast.text,
         embeds: processedEmbeds as [string] | [string, string] | undefined,
         parent: cast.parent,
         channelKey: cast.channelKey,
         close: cast.close,
-      }); // <-- Argumen kedua dihapus dari sini
+      });
 
     } catch (error) {
       console.error('Failed to share:', error);
