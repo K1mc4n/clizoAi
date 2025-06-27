@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useMiniApp } from "@neynar/react";
-import { useDebounce } from 'use-debounce';
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
 import { Button } from "./ui/Button";
-import { Input } from "./ui/input";
 import { TalentCard, type TalentProfile } from "./ui/TalentCard";
 import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
@@ -26,9 +24,6 @@ export default function Demo({ title }: { title?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedTalent, setSelectedTalent] = useState<TalentProfile | null>(null);
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   
   const { address, isConnected } = useAccount();
@@ -38,38 +33,40 @@ export default function Demo({ title }: { title?: string }) {
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
 
-  const fetchUsers = useCallback(async (query: string) => {
+  const fetchTalentsFromDune = useCallback(async () => {
+    if (talents.length > 0 && allFetchedTalents.size > 0) {
+        setIsLoading(false);
+        return;
+    }
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/users/list?q=${encodeURIComponent(query)}`);
+      const response = await fetch('/api/talents');
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to fetch users. Status: ${response.status}`);
+        throw new Error(errorData.error || `Failed to fetch talents. Status: ${response.status}`);
       }
 
       const data = await response.json();
-      const newUsers: TalentProfile[] = data.talents || [];
-      setTalents(newUsers);
-      setAllFetchedTalents(prev => {
-        const newMap = new Map(prev);
-        newUsers.forEach(t => newMap.set(t.username, t));
-        return newMap;
-      });
+      const newTalents: TalentProfile[] = data.talents || [];
+      setTalents(newTalents);
+      const newMap = new Map();
+      newTalents.forEach(t => newMap.set(t.username, t));
+      setAllFetchedTalents(newMap);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [talents.length, allFetchedTalents.size]);
 
   useEffect(() => {
-    if (activeTab === 'home' || (activeTab === 'bookmarks' && allFetchedTalents.size === 0)) {
-      fetchUsers(debouncedSearchTerm);
+    if (activeTab === 'home') {
+      fetchTalentsFromDune();
     }
-  }, [debouncedSearchTerm, activeTab, fetchUsers, allFetchedTalents.size]);
+  }, [activeTab, fetchTalentsFromDune]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -103,9 +100,6 @@ export default function Demo({ title }: { title?: string }) {
   const handleSelectTalent = (talent: TalentProfile) => setSelectedTalent(talent);
   const handleBackToList = () => setSelectedTalent(null);
 
-  // --- PERBAIKAN DI SINI ---
-  // Hapus selectedTalent dari dependency array agar view detail tidak langsung tertutup.
-  // View detail hanya akan tertutup jika pengguna beralih tab.
   useEffect(() => {
     setSelectedTalent(null);
   }, [activeTab]);
@@ -113,22 +107,27 @@ export default function Demo({ title }: { title?: string }) {
   if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading SDK...</div>;
   
   const getBookmarkedTalents = () => {
-    return bookmarks.map(username => allFetchedTalents.get(username)).filter(Boolean) as TalentProfile[];
+    const bookmarkedList: TalentProfile[] = [];
+    bookmarks.forEach(username => {
+        // Coba cari di data yang sudah di-fetch
+        const talent = allFetchedTalents.get(username);
+        if (talent) {
+            bookmarkedList.push(talent);
+        }
+    });
+    return bookmarkedList;
   }
 
   const renderHome = () => (
     <>
-      <div className="px-2 mb-4">
-        <Input type="text" placeholder="Search Farcaster users..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-      </div>
-      {isLoading && <>{Array.from({ length: 5 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
+      {isLoading && <>{Array.from({ length: 8 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
       {error && <div className="text-center py-10 text-red-500">{error}</div>}
       {!isLoading && !error && (
         <div className="animate-fade-in">
           {talents.length > 0 ? (
             talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
-            <div className="text-center py-10 text-gray-500">No users found for '{debouncedSearchTerm}'.</div>
+            <div className="text-center py-10 text-gray-500">No talents found. Please check the Dune query.</div>
           )}
         </div>
       )}
