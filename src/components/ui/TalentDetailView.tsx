@@ -1,3 +1,5 @@
+// src/components/ui/TalentDetailView.tsx
+
 import { useState } from 'react';
 import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
 import { parseEther } from 'viem';
@@ -5,7 +7,8 @@ import { base } from 'wagmi/chains';
 import { TalentProfile } from './TalentCard';
 import { Button } from './Button';
 import { ShareButton } from './Share';
-import { APP_URL } from '~/lib/constants'; // Impor APP_URL
+// --- PERBAIKAN DI SINI: Tambahkan baris impor ini ---
+import { APP_NAME, APP_URL } from '~/lib/constants'; 
 
 interface TalentDetailViewProps {
   talent: TalentProfile;
@@ -88,9 +91,6 @@ export const TalentDetailView = ({ talent, onBack, loggedInUserAddress }: Talent
             buttonText="Share This Profile"
             cast={{
               text: `Check out this Farcaster user, @${talent.username}! Check out their profile on ${APP_NAME}!`,
-              // --- PERBAIKAN DI SINI ---
-              // Sematkan URL root aplikasi, bukan URL /app.
-              // Farcaster akan mengambil metadata dari URL root ini.
               embeds: [APP_URL],
             }}
             className="w-full"
