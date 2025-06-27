@@ -1,24 +1,44 @@
+// src/app/page.tsx
+
 import { Metadata } from "next";
 import { APP_NAME, APP_DESCRIPTION, APP_SPLASH_URL, APP_URL } from "~/lib/constants";
 
-export const metadata: Metadata = {
-  title: `${APP_NAME} - Discover Web3 Talents`,
-  description: APP_DESCRIPTION,
-  openGraph: {
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
-    images: [APP_SPLASH_URL], 
-  },
-  other: {
-    'fc:frame': 'vNext',
-    'fc:frame:image': APP_SPLASH_URL,
-    'fc:frame:button:1': 'Launch App',
-    'fc:frame:button:1:action': 'link',
-    // Pastikan /app ada dan merender komponen Demo
-    'fc:frame:button:1:target': `${APP_URL}/app`, 
-  },
-};
+// `generateMetadata` digunakan untuk memastikan variabel lingkungan
+// seperti APP_URL tersedia saat Next.js membangun metadata.
+export async function generateMetadata(): Promise<Metadata> {
+  // Pastikan URL dan nama aplikasi tersedia
+  const appUrl = APP_URL || 'https://default-url.com';
+  const appName = APP_NAME || 'My Farcaster App';
+  const appSplashUrl = APP_SPLASH_URL || `${appUrl}/splash.png`;
 
+  return {
+    title: `${appName} - Discover Web3 Talents`,
+    description: APP_DESCRIPTION,
+    openGraph: {
+      title: appName,
+      description: APP_DESCRIPTION,
+      images: [appSplashUrl], 
+    },
+    // Ini adalah bagian penting untuk Farcaster
+    other: {
+      // Menandakan bahwa ini adalah Farcaster Frame/Mini App
+      'fc:frame': 'vNext',
+      // Gambar yang ditampilkan di dalam frame
+      'fc:frame:image': appSplashUrl,
+
+      // --- Meta tag untuk tombol "Launch App" ---
+      'fc:frame:button:1': 'Launch App',
+      // Menggunakan 'post_redirect' akan membuat klien Farcaster (Warpcast)
+      // mengalihkan pengguna ke dalam Mini App setelah tombol diklik.
+      'fc:frame:button:1:action': 'post_redirect',
+      // URL API yang akan menerima POST request saat tombol diklik.
+      // API ini yang akan melakukan redirect ke halaman aplikasi.
+      'fc:frame:post_url': `${appUrl}/api/launch`,
+    },
+  };
+}
+
+// Komponen halaman utama tetap sama.
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-900">
