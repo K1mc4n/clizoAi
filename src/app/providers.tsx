@@ -1,12 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { MiniAppProvider } from "@neynar/react";
-
-const WagmiProvider = dynamic(
-  () => import("~/components/providers/WagmiProvider"),
-  { ssr: false }
-);
+// Impor `WagmiProvider` secara langsung. Impor dinamis tidak diperlukan di sini
+// karena komponen provider itu sendiri ringan. Komponen yang menggunakannya yang perlu
+// dimuat secara dinamis.
+import WagmiProvider from "~/components/providers/WagmiProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
