@@ -103,11 +103,12 @@ export default function Demo({ title }: { title?: string }) {
   const handleSelectTalent = (talent: TalentProfile) => setSelectedTalent(talent);
   const handleBackToList = () => setSelectedTalent(null);
 
+  // --- PERBAIKAN DI SINI ---
+  // Hapus selectedTalent dari dependency array agar view detail tidak langsung tertutup.
+  // View detail hanya akan tertutup jika pengguna beralih tab.
   useEffect(() => {
-    if(selectedTalent) {
-        setSelectedTalent(null);
-    }
-  }, [activeTab, selectedTalent]); // <-- PERBAIKAN ESLINT
+    setSelectedTalent(null);
+  }, [activeTab]);
 
   if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading SDK...</div>;
   
