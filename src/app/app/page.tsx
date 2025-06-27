@@ -4,11 +4,13 @@
 
 import dynamic from "next/dynamic";
 import { APP_NAME } from "~/lib/constants";
+import AppLoading from "~/components/AppLoading"; // Impor komponen loading baru
 
-// Dynamic import diperlukan untuk komponen yang menggunakan SDK client-side
+// Komponen `Demo` dimuat secara dinamis karena mengandung banyak logika client-side.
+// `ssr: false` sangat penting untuk komponen yang menggunakan hook dari Farcaster SDK atau Wagmi.
 const Demo = dynamic(() => import("~/components/Demo"), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-screen">Loading App...</div>,
+  loading: () => <AppLoading />, // Gunakan komponen skeleton loading yang baru
 });
 
 export default function AppPage() {
