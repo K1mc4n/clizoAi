@@ -1,4 +1,8 @@
 {
-  "buildCommand": "next build",
-  "framework": "nextjs"
-} 
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/talents/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
