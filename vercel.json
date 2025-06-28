@@ -1,8 +1,14 @@
 {
   "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/talents/refresh",
+      "schedule": "0 * * * *"
+    }
+  ],
   "functions": {
-    "src/app/api/talents/route.ts": {
-      "maxDuration": 60
+    "src/app/api/talents/refresh/route.ts": {
+      "maxDuration": 300
     }
   }
 }
