@@ -1,3 +1,5 @@
+// src/components/Demo.tsx
+
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -9,6 +11,7 @@ import { Button } from "./ui/Button";
 import { TalentCard, type TalentProfile } from "./ui/TalentCard";
 import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
+import { SponsorBanner } from './ui/SponsorBanner'; // <-- Komponen sponsor diimpor di sini
 import { USE_WALLET } from "~/lib/constants";
 import { truncateAddress } from "~/lib/truncateAddress";
 
@@ -33,15 +36,15 @@ export default function Demo({ title }: { title?: string }) {
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
 
-  const fetchTalentsFromDune = useCallback(async () => {
-    if (talents.length > 0 && allFetchedTalents.size > 0) {
+  const fetchTalents = useCallback(async () => {
+    if (talents.length > 0) {
         setIsLoading(false);
         return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/talents');
+      const response = await fetch('/api/users/list'); 
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -56,17 +59,17 @@ export default function Demo({ title }: { title?: string }) {
       setAllFetchedTalents(newMap);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
+      setError(`Failed to load talent list. ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
-  }, [talents.length, allFetchedTalents.size]);
+  }, [talents.length]);
 
   useEffect(() => {
     if (activeTab === 'home') {
-      fetchTalentsFromDune();
+      fetchTalents();
     }
-  }, [activeTab, fetchTalentsFromDune]);
+  }, [activeTab, fetchTalents]);
   
   useEffect(() => {
     const fetchAndSetBookmarks = async () => {
@@ -109,7 +112,6 @@ export default function Demo({ title }: { title?: string }) {
   const getBookmarkedTalents = () => {
     const bookmarkedList: TalentProfile[] = [];
     bookmarks.forEach(username => {
-        // Coba cari di data yang sudah di-fetch
         const talent = allFetchedTalents.get(username);
         if (talent) {
             bookmarkedList.push(talent);
@@ -120,14 +122,17 @@ export default function Demo({ title }: { title?: string }) {
 
   const renderHome = () => (
     <>
+      {/* BANNER SPONSOR DITEMPATKAN DI SINI */}
+      <SponsorBanner />
+
       {isLoading && <>{Array.from({ length: 8 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
       {error && <div className="text-center py-10 text-red-500">{error}</div>}
       {!isLoading && !error && (
         <div className="animate-fade-in">
           {talents.length > 0 ? (
-            talents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
+            talents.map((t) => <TalentCard key={t.fid} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={bookmarks.includes(t.username)} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn}/>)
           ) : (
-            <div className="text-center py-10 text-gray-500">No talents found. Please check the Dune query.</div>
+            <div className="text-center py-10 text-gray-500">No curated talents found.</div>
           )}
         </div>
       )}
@@ -142,7 +147,7 @@ export default function Demo({ title }: { title?: string }) {
     return (
       <div className="animate-fade-in">
         {bTalents.length > 0 ? (
-          bTalents.map((t) => <TalentCard key={t.username} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={true} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn} />)
+          bTalents.map((t) => <TalentCard key={t.fid} talent={t} onClick={() => handleSelectTalent(t)} isBookmarked={true} onToggleBookmark={() => toggleBookmark(t)} isLoggedIn={isLoggedIn} />)
         ) : (
           <div className="text-center py-10 text-gray-500">You have no bookmarked talents yet. <br/> Go to Home to find and star users!</div>
         )}
