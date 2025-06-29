@@ -4,7 +4,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useMiniApp } from '@neynar/react';
-import { TalentCard, TalentCardSkeleton, type TalentProfile } from '~/components/ui/TalentCard';
+import { TalentCard, type TalentProfile } from '~/components/ui/TalentCard';
+// PERBAIKAN: Impor TalentCardSkeleton dari filenya sendiri
+import { TalentCardSkeleton } from '~/components/ui/TalentCardSkeleton'; 
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
 import { USE_WALLET } from '~/lib/constants';
@@ -26,7 +28,6 @@ export default function BookmarksPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Panggil API yang mengambil semua talenta, lalu filter di client side
       const [talentsRes, bookmarksRes] = await Promise.all([
         fetch('/api/users/list'),
         fetch(`/api/bookmarks?fid=${userFid}`)
@@ -53,17 +54,26 @@ export default function BookmarksPage() {
   }, [userFid]);
 
   useEffect(() => {
-    fetchBookmarkedTalents();
-  }, [fetchBookmarkedTalents]);
+    if (context?.user) {
+        fetchBookmarkedTalents();
+    }
+  }, [context?.user, fetchBookmarkedTalents]);
 
   if (!userFid) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-center p-4">
-        <p className="mb-4">Please open in a Farcaster client to see your bookmarks.</p>
-        <Link href="/app" className="text-blue-500 hover:underline">
-          Go back to Home
-        </Link>
-      </div>
+        <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
+            <div className="mx-auto py-2 px-4 pb-20">
+                <Header />
+                <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarks</h1>
+                <div className="flex flex-col items-center justify-center text-center p-4 h-64">
+                    <p className="mb-4">Please open in a Farcaster client to see your bookmarks.</p>
+                    <Link href="/app" className="text-blue-500 hover:underline">
+                        Go back to Home
+                    </Link>
+                </div>
+            </div>
+            <Footer showWallet={USE_WALLET} />
+        </div>
     );
   }
 
@@ -84,7 +94,7 @@ export default function BookmarksPage() {
                               talent={talent} 
                               onClick={() => {}}
                               isBookmarked={true}
-                              onToggleBookmark={() => {}} // Bookmark logic handled on main page
+                              onToggleBookmark={() => {}}
                               isLoggedIn={!!userFid}
                             />
                         ))
