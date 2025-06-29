@@ -2,7 +2,8 @@
 
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+// PERBAIKAN: Impor tipe User dari path yang benar dan gunakan 'type'
+import { type User } from '@neynar/nodejs-sdk';
 
 // Definisikan tipe data yang dibutuhkan oleh komponen frontend Anda (TalentCard)
 export interface TalentProfile {
@@ -38,15 +39,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const neynar = new NeynarAPIClient({ apiKey });
+    const neynar = new NeynarAPIClient(apiKey);
 
     // 1. Ambil data untuk pengguna yang di-pin secara spesifik
-    const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
+    const { users: pinnedUsers } = await neynar.fetchBulkUsers(PINNED_FIDS);
 
     // 2. Ambil daftar pengguna dengan "Power Badge" (proxy untuk pengguna top)
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
 
-    // 3. Gabungkan daftar dan hapus duplikat, dengan memastikan pengguna yang di-pin selalu di depan
+    // 3. Gabungkan daftar dan hapus duplikat
     const allUsersMap = new Map<number, User>();
 
     // Tambahkan pengguna yang di-pin terlebih dahulu untuk menjaga urutan
@@ -71,7 +72,6 @@ export async function GET(request: NextRequest) {
       wallet_address: user.verified_addresses?.eth_addresses?.[0] || '',
       fid: user.fid,
       // Tambahkan nilai default untuk properti yang tidak tersedia langsung dari Neynar
-      // Ini penting agar komponen frontend tidak error
       fid_active_tier_name: 'active',
       followers: user.follower_count ?? 0,
       casts: 0,
