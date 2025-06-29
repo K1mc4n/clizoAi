@@ -1,31 +1,37 @@
+// src/app/api/users/list/route.ts
+
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
-export interface FarcasterUser {
+// Definisikan tipe data yang dibutuhkan oleh komponen frontend Anda (TalentCard)
+export interface TalentProfile {
   username: string;
   name: string;
   headline: string;
   profile_picture_url: string;
   wallet_address: string;
   fid: number;
+  fid_active_tier_name: string;
+  followers: number;
+  casts: number;
+  engagement: number;
+  top_channels: string[];
+  top_domains: string[];
+  total_transactions: number;
 }
 
-// --- PERBAIKAN DI SINI ---
-// Pindahkan definisi konstanta keluar dari fungsi GET
-const MY_FID = 250575;
-const USER_LIMIT = 100;
-const CURATED_FIDS = [
-  250575, 2, 3, 5, 6, 7, 8, 9, 10, 13, 40, 48, 50, 61, 95, 109, 133, 143, 147, 150, 153, 159, 191, 194, 195, 207, 214, 222, 225,
-  238, 244, 250, 253, 259, 269, 271, 281, 292, 313, 333, 347, 350, 370, 397, 401, 403, 417, 420, 439, 440, 453, 455, 484,
-  503, 521, 538, 555, 558, 560, 564, 574, 582, 592, 602, 608, 612, 613, 620, 631, 642, 650, 666, 688, 701, 712, 747, 750,
-  777, 800, 808, 818, 888, 909, 923, 933, 955, 961, 999, 1001, 1104, 1111, 1121, 1177, 1234, 1337, 1990, 2000, 2001, 2023, 4242
-];
-// --------------------------
+
+// --- KONFIGURASI ---
+// FID yang akan diprioritaskan di urutan teratas
+const PINNED_FIDS = [250575, 1107084]; 
+const USER_LIMIT = 100; // Batas total pengguna yang akan ditampilkan
+
+// Cache hasil dari endpoint ini selama 1 jam untuk menjaga kecepatan dan menghemat panggilan API
+export const revalidate = 3600;
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Server configuration error: Missing Neynar API Key.' }, { status: 500 });
@@ -33,38 +39,49 @@ export async function GET(request: NextRequest) {
 
   try {
     const neynar = new NeynarAPIClient({ apiKey });
-    let users: any[] = [];
-    
-    // Logika ini dinonaktifkan sementara karena batasan paket gratis
-    if (query && query.trim() !== '') {
-        // Jika Anda upgrade paket, Anda bisa mengaktifkan kembali blok ini
-        // const response = await neynar.searchUser({ q: query });
-        // users = response.result.users;
-    }
-    
-    // Jika tidak ada hasil pencarian (atau pencarian dinonaktifkan), gunakan daftar kurasi
-    if (users.length === 0) {
-      const bulkUsersResponse = await neynar.fetchBulkUsers({ fids: CURATED_FIDS });
-      users = bulkUsersResponse.users;
-    }
 
-    const formattedUsers: FarcasterUser[] = users.map(user => ({
+    // 1. Ambil data untuk pengguna yang di-pin secara spesifik
+    const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
+
+    // 2. Ambil daftar pengguna dengan "Power Badge" (proxy untuk pengguna top)
+    const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
+
+    // 3. Gabungkan daftar dan hapus duplikat, dengan memastikan pengguna yang di-pin selalu di depan
+    const allUsersMap = new Map<number, User>();
+
+    // Tambahkan pengguna yang di-pin terlebih dahulu untuk menjaga urutan
+    pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
+
+    // Tambahkan pengguna Power Badge, hindari duplikat
+    powerBadgeUsers.forEach(user => {
+      if (!allUsersMap.has(user.fid)) {
+        allUsersMap.set(user.fid, user);
+      }
+    });
+
+    // Ambil 100 pengguna pertama dari daftar yang sudah digabungkan
+    const top100Users = Array.from(allUsersMap.values()).slice(0, USER_LIMIT);
+
+    // 4. Format data sesuai dengan tipe 'TalentProfile' yang dibutuhkan oleh frontend Anda
+    const finalTalents: TalentProfile[] = top100Users.map(user => ({
       username: user.username,
       name: user.display_name || user.username,
-      headline: user.profile?.bio?.text || 'A Farcaster user.',
+      headline: user.profile?.bio?.text || 'A top Farcaster user.',
       profile_picture_url: user.pfp_url || '',
       wallet_address: user.verified_addresses?.eth_addresses?.[0] || '',
       fid: user.fid,
+      // Tambahkan nilai default untuk properti yang tidak tersedia langsung dari Neynar
+      // Ini penting agar komponen frontend tidak error
+      fid_active_tier_name: 'active',
+      followers: user.follower_count ?? 0,
+      casts: 0,
+      engagement: 0,
+      top_channels: [],
+      top_domains: [],
+      total_transactions: 0
     }));
     
-    // Urutkan untuk memastikan profil Anda selalu di atas
-    formattedUsers.sort((a, b) => {
-        if (a.fid === MY_FID) return -1;
-        if (b.fid === MY_FID) return 1;
-        return 0;
-    });
-    
-    return NextResponse.json({ talents: formattedUsers });
+    return NextResponse.json({ talents: finalTalents });
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
