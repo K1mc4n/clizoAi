@@ -2,10 +2,10 @@
 
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
-// PERBAIKAN: Impor tipe User dari path yang benar dan gunakan 'type'
-import { type User } from '@neynar/nodejs-sdk';
+// PERBAIKAN: Impor tipe `ValidatedUser` yang merupakan tipe data pengguna yang benar
+import { type ValidatedUser } from '@neynar/nodejs-sdk';
 
-// Definisikan tipe data yang dibutuhkan oleh komponen frontend Anda (TalentCard)
+// Definisikan tipe data yang dibutuhkan oleh frontend Anda (TalentCard)
 export interface TalentProfile {
   username: string;
   name: string;
@@ -28,7 +28,7 @@ export interface TalentProfile {
 const PINNED_FIDS = [250575, 1107084]; 
 const USER_LIMIT = 100; // Batas total pengguna yang akan ditampilkan
 
-// Cache hasil dari endpoint ini selama 1 jam untuk menjaga kecepatan dan menghemat panggilan API
+// Cache hasil dari endpoint ini selama 1 jam
 export const revalidate = 3600;
 
 export async function GET(request: NextRequest) {
@@ -41,37 +41,34 @@ export async function GET(request: NextRequest) {
   try {
     const neynar = new NeynarAPIClient(apiKey);
 
-    // 1. Ambil data untuk pengguna yang di-pin secara spesifik
+    // 1. Ambil data untuk pengguna yang di-pin
     const { users: pinnedUsers } = await neynar.fetchBulkUsers(PINNED_FIDS);
 
-    // 2. Ambil daftar pengguna dengan "Power Badge" (proxy untuk pengguna top)
+    // 2. Ambil daftar pengguna "Power Badge"
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
 
     // 3. Gabungkan daftar dan hapus duplikat
-    const allUsersMap = new Map<number, User>();
+    // PERBAIKAN: Gunakan tipe `ValidatedUser`
+    const allUsersMap = new Map<number, ValidatedUser>();
 
-    // Tambahkan pengguna yang di-pin terlebih dahulu untuk menjaga urutan
     pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
-
-    // Tambahkan pengguna Power Badge, hindari duplikat
     powerBadgeUsers.forEach(user => {
       if (!allUsersMap.has(user.fid)) {
         allUsersMap.set(user.fid, user);
       }
     });
 
-    // Ambil 100 pengguna pertama dari daftar yang sudah digabungkan
     const top100Users = Array.from(allUsersMap.values()).slice(0, USER_LIMIT);
 
-    // 4. Format data sesuai dengan tipe 'TalentProfile' yang dibutuhkan oleh frontend Anda
+    // 4. Format data sesuai dengan yang dibutuhkan oleh frontend
     const finalTalents: TalentProfile[] = top100Users.map(user => ({
       username: user.username,
       name: user.display_name || user.username,
       headline: user.profile?.bio?.text || 'A top Farcaster user.',
       profile_picture_url: user.pfp_url || '',
-      wallet_address: user.verified_addresses?.eth_addresses?.[0] || '',
+      wallet_address: user.verifications?.length > 0 ? user.verifications[0] : '', // Menggunakan `verifications` jika ada
       fid: user.fid,
-      // Tambahkan nilai default untuk properti yang tidak tersedia langsung dari Neynar
+      // Tambahkan nilai default untuk properti yang tidak tersedia
       fid_active_tier_name: 'active',
       followers: user.follower_count ?? 0,
       casts: 0,
