@@ -30,7 +30,8 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
         typeof embed === 'string' ? embed : embed.url
       );
 
-      // PERBAIKAN: Argumen kedua telah dihapus dari pemanggilan fungsi ini.
+      // PERBAIKAN: Argumen kedua telah dihapus dari pemanggilan fungsi ini,
+      // sesuai dengan versi SDK yang lebih baru.
       await actions.composeCast({
         text: cast.text,
         embeds: processedEmbeds as [string] | [string, string] | undefined,
