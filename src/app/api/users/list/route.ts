@@ -1,9 +1,7 @@
 // src/app/api/users/list/route.ts
 
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient, type User } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
-// PERBAIKAN: Impor tipe `ValidatedUser` yang merupakan tipe data pengguna yang benar
-import { type ValidatedUser } from '@neynar/nodejs-sdk';
 
 // Definisikan tipe data yang dibutuhkan oleh frontend Anda (TalentCard)
 export interface TalentProfile {
@@ -48,8 +46,7 @@ export async function GET(request: NextRequest) {
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
 
     // 3. Gabungkan daftar dan hapus duplikat
-    // PERBAIKAN: Gunakan tipe `ValidatedUser`
-    const allUsersMap = new Map<number, ValidatedUser>();
+    const allUsersMap = new Map<number, User>();
 
     pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
     powerBadgeUsers.forEach(user => {
