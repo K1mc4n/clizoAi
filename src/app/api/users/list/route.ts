@@ -1,6 +1,6 @@
 // src/app/api/users/list/route.ts
 
-import { NeynarAPIClient, type UserV2 } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data yang dibutuhkan oleh frontend Anda (TalentCard)
@@ -39,6 +39,11 @@ export async function GET(request: NextRequest) {
   try {
     const neynar = new NeynarAPIClient(apiKey);
 
+    // PERBAIKAN: Inferensi tipe pengguna langsung dari return type fungsi SDK.
+    // Ini adalah cara yang paling andal untuk memastikan tipe data selalu benar.
+    type BulkUsersResponse = Awaited<ReturnType<typeof neynar.fetchBulkUsers>>;
+    type NeynarUserType = BulkUsersResponse['users'][0];
+
     // 1. Ambil data untuk pengguna yang di-pin
     const { users: pinnedUsers } = await neynar.fetchBulkUsers(PINNED_FIDS);
 
@@ -46,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
 
     // 3. Gabungkan daftar dan hapus duplikat
-    const allUsersMap = new Map<number, UserV2>();
+    const allUsersMap = new Map<number, NeynarUserType>();
 
     pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
     powerBadgeUsers.forEach(user => {
