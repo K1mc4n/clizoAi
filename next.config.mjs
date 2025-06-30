@@ -1,23 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Opsi ini akan tetap ada, tidak ada salahnya
+  // Instruksi untuk Next.js agar memproses ulang paket-paket ini
+  // Ini akan memperbaiki error build terkait wallet.
   transpilePackages: [
-    'viem',
-    'wagmi',
+    '@wagmi/core',
+    '@walletconnect/ethereum-provider',
   ],
 
-  // PERBAIKAN: Menambahkan konfigurasi Webpack kustom
-  webpack: (config, { isServer }) => {
-    // Memberitahu Webpack untuk tidak memproses (parse) modul tertentu.
-    // Ini akan mencegah Terser (minifier) dari mencoba memproses file yang bermasalah.
-    config.module.noParse = [
-      ...config.module.noParse || [],
-      /@walletconnect\/ethereum-provider/,
-    ];
-
-    return config;
-  },
-  
+  // Pengaturan gambar, biarkan seperti ini
   images: {
     remotePatterns: [
       {
