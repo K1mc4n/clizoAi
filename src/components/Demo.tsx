@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useMiniApp } from "@neynar/react";
 import { Header } from "~/components/ui/Header";
@@ -12,12 +12,14 @@ import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
 import { SponsorBanner } from './ui/SponsorBanner';
 import { USE_WALLET } from "~/lib/constants";
+import { staticTalentData } from "~/lib/staticData"; // <-- Impor data statis
 
 export default function Demo({ title }: { title?: string }) {
   const { isSDKLoaded, context } = useMiniApp();
-  const [allFetchedTalents, setAllFetchedTalents] = useState<Map<string, TalentProfile>>(new Map());
-  const [talents, setTalents] = useState<TalentProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Gunakan data statis sebagai state awal.
+  const [talents, setTalents] = useState<TalentProfile[]>(staticTalentData);
+  // Atur isLoading ke false karena data sudah ada.
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTalent, setSelectedTalent] = useState<TalentProfile | null>(null);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
@@ -25,41 +27,16 @@ export default function Demo({ title }: { title?: string }) {
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
 
-  const fetchTalents = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/users/list');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to fetch talents. Status: ${response.status}`);
-      }
-      const data = await response.json();
-      const newTalents: TalentProfile[] = data.talents || [];
-      setTalents(newTalents);
-      const newMap = new Map<string, TalentProfile>();
-      newTalents.forEach(t => newMap.set(t.username, t));
-      setAllFetchedTalents(newMap);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTalents();
-  }, [fetchTalents]);
+  // Logika fetch data awal telah dihapus untuk menghilangkan error.
 
   useEffect(() => {
     if (!userFid) return;
     const fetchAndSetBookmarks = async () => {
       try {
         const response = await fetch(`/api/bookmarks?fid=${userFid}`);
+        if (!response.ok) return;
         const data = await response.json();
-        if (response.ok) {
-          setBookmarks(data.map((b: { talent_username: string }) => b.talent_username));
-        }
+        setBookmarks(data.map((b: { talent_username: string }) => b.talent_username));
       } catch (e) { console.error("Failed to fetch bookmarks:", e); }
     };
     fetchAndSetBookmarks();
@@ -74,6 +51,7 @@ export default function Demo({ title }: { title?: string }) {
     const action = isBookmarked ? 'remove' : 'add';
     const newBookmarks = isBookmarked ? bookmarks.filter(b => b !== talent.username) : [...bookmarks, talent.username];
     setBookmarks(newBookmarks);
+    // Logika bookmark tetap menggunakan API
     await fetch('/api/bookmarks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -84,36 +62,31 @@ export default function Demo({ title }: { title?: string }) {
   const handleSelectTalent = (talent: TalentProfile) => setSelectedTalent(talent);
   const handleBackToList = () => setSelectedTalent(null);
 
-  if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  if (!isSDKLoaded) return <div className="flex items-center justify-center h-screen"><TalentCardSkeleton /></div>;
 
   return (
     <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
       <div className="mx-auto py-2 px-4 pb-20">
-        <Header neynarUser={userFid ? { fid: userFid, score: 0 } : undefined} />
+        <Header />
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
         {selectedTalent ? (
           <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={address} />
         ) : (
           <>
             <SponsorBanner />
-            {isLoading && <>{Array.from({ length: 8 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
-            {error && <div className="text-center py-10 text-red-500">{error}</div>}
+            {/* Menghapus tampilan error karena data sekarang statis */}
             {!isLoading && !error && (
               <div className="animate-fade-in">
-                {talents.length > 0 ? (
-                  talents.map((t) => (
-                    <TalentCard
-                      key={t.fid}
-                      talent={t}
-                      onClick={() => handleSelectTalent(t)}
-                      isBookmarked={bookmarks.includes(t.username)}
-                      onToggleBookmark={() => toggleBookmark(t)}
-                      isLoggedIn={isLoggedIn}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-10 text-gray-500">No curated talents found.</div>
-                )}
+                {talents.map((t) => (
+                  <TalentCard
+                    key={t.fid}
+                    talent={t}
+                    onClick={() => handleSelectTalent(t)}
+                    isBookmarked={bookmarks.includes(t.username)}
+                    onToggleBookmark={() => toggleBookmark(t)}
+                    isLoggedIn={isLoggedIn}
+                  />
+                ))}
               </div>
             )}
           </>
