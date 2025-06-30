@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
     const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
 
     // 2. Ambil daftar pengguna "Power User"
-    // PERBAIKAN: Menggunakan nama metode yang benar 'fetchPowerUsers'
-    const { users: powerUsers } = await neynar.fetchPowerUsers();
+    // PERBAIKAN: Berikan objek kosong sebagai argumen yang diperlukan.
+    const { users: powerUsers } = await neynar.fetchPowerUsers({});
 
     // 3. Gabungkan daftar dan hapus duplikat
     const allUsersMap = new Map<number, NeynarUserType>();
