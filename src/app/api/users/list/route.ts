@@ -26,8 +26,10 @@ export interface TalentProfile {
 const PINNED_FIDS = [250575, 1107084]; 
 const USER_LIMIT = 100; // Batas total pengguna yang akan ditampilkan
 
-// Cache hasil dari endpoint ini selama 1 jam
-export const revalidate = 3600;
+// PERBAIKAN: Memaksa endpoint ini menjadi dinamis.
+// Ini mencegah Next.js menjalankan endpoint ini pada saat build,
+// sehingga menghindari error API 402.
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -47,7 +49,6 @@ export async function GET(request: NextRequest) {
     const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
 
     // 2. Ambil daftar pengguna "Power User"
-    // PERBAIKAN: Berikan objek kosong sebagai argumen yang diperlukan.
     const { users: powerUsers } = await neynar.fetchPowerUsers({});
 
     // 3. Gabungkan daftar dan hapus duplikat
@@ -68,9 +69,8 @@ export async function GET(request: NextRequest) {
       name: user.display_name || user.username,
       headline: user.profile?.bio?.text || 'A top Farcaster user.',
       profile_picture_url: user.pfp_url || '',
-      wallet_address: user.verifications?.length > 0 ? user.verifications[0] : '', // Menggunakan `verifications` jika ada
+      wallet_address: user.verifications?.length > 0 ? user.verifications[0] : '',
       fid: user.fid,
-      // Tambahkan nilai default untuk properti yang tidak tersedia
       fid_active_tier_name: 'active',
       followers: user.follower_count ?? 0,
       casts: 0,
