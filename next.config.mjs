@@ -1,13 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Instruksi untuk Next.js agar memproses ulang paket-paket ini
-  // Ini akan memperbaiki error build terkait wallet.
-  transpilePackages: [
-    '@wagmi/core',
-    '@walletconnect/ethereum-provider',
-  ],
+  // PERBAIKAN: Secara eksplisit menonaktifkan SWC minifier
+  // dan mengkonfigurasi Terser untuk tidak menyebabkan error.
+  swcMinify: false,
+  webpack: (config) => {
+    // Ini memastikan Terser digunakan, bukan SWC
+    config.optimization.minimizer = config.optimization.minimizer.filter(
+      (plugin) => plugin.constructor.name !== 'SwcJsMinimizerRspackPlugin'
+    );
+    return config;
+  },
 
-  // Pengaturan gambar, biarkan seperti ini
   images: {
     remotePatterns: [
       {
