@@ -44,17 +44,17 @@ export async function GET(request: NextRequest) {
     type NeynarUserType = BulkUsersResponse['users'][0];
 
     // 1. Ambil data untuk pengguna yang di-pin
-    // PERBAIKAN: Bungkus array FIDs dalam objek { fids: ... }
     const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
 
-    // 2. Ambil daftar pengguna "Power Badge"
-    const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
+    // 2. Ambil daftar pengguna "Power User"
+    // PERBAIKAN: Menggunakan nama metode yang benar 'fetchPowerUsers'
+    const { users: powerUsers } = await neynar.fetchPowerUsers();
 
     // 3. Gabungkan daftar dan hapus duplikat
     const allUsersMap = new Map<number, NeynarUserType>();
 
     pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
-    powerBadgeUsers.forEach(user => {
+    powerUsers.forEach(user => {
       if (!allUsersMap.has(user.fid)) {
         allUsersMap.set(user.fid, user);
       }
