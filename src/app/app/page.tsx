@@ -2,14 +2,16 @@
 
 "use client";
 
-import dynamic from "next/dynamic";
+// PERBAIKAN: Ganti nama impor 'dynamic' menjadi 'dynamicImport' untuk menghindari konflik
+import dynamicImport from "next/dynamic"; 
 import { APP_NAME } from "~/lib/constants";
 import AppLoading from "~/components/AppLoading";
 
-// PERBAIKAN: Tambahkan baris ini untuk mencegah prerendering saat build
+// Baris ini sudah benar dan harus tetap ada untuk mencegah prerendering
 export const dynamic = 'force-dynamic';
 
-const Demo = dynamic(() => import("~/components/Demo"), {
+// Gunakan nama baru 'dynamicImport' saat memanggil fungsi
+const Demo = dynamicImport(() => import("~/components/Demo"), {
   ssr: false,
   loading: () => <AppLoading />, 
 });
