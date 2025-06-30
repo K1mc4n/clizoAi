@@ -21,7 +21,7 @@ export interface TalentProfile {
 }
 
 
-// --- KONFIGURasi ---
+// --- KONFIGURASI ---
 // FID yang akan diprioritaskan di urutan teratas
 const PINNED_FIDS = [250575, 1107084]; 
 const USER_LIMIT = 100; // Batas total pengguna yang akan ditampilkan
@@ -37,16 +37,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // PERBAIKAN: Inisialisasi klien dengan objek Configuration
     const neynar = new NeynarAPIClient(new Configuration({ apiKey }));
 
     // Inferensi tipe pengguna langsung dari return type fungsi SDK.
-    // Ini adalah cara yang paling andal untuk memastikan tipe data selalu benar.
     type BulkUsersResponse = Awaited<ReturnType<typeof neynar.fetchBulkUsers>>;
     type NeynarUserType = BulkUsersResponse['users'][0];
 
     // 1. Ambil data untuk pengguna yang di-pin
-    const { users: pinnedUsers } = await neynar.fetchBulkUsers(PINNED_FIDS);
+    // PERBAIKAN: Bungkus array FIDs dalam objek { fids: ... }
+    const { users: pinnedUsers } = await neynar.fetchBulkUsers({ fids: PINNED_FIDS });
 
     // 2. Ambil daftar pengguna "Power Badge"
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
