@@ -1,6 +1,6 @@
 // src/app/api/users/list/route.ts
 
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data yang dibutuhkan oleh frontend Anda (TalentCard)
@@ -21,7 +21,7 @@ export interface TalentProfile {
 }
 
 
-// --- KONFIGURASI ---
+// --- KONFIGURasi ---
 // FID yang akan diprioritaskan di urutan teratas
 const PINNED_FIDS = [250575, 1107084]; 
 const USER_LIMIT = 100; // Batas total pengguna yang akan ditampilkan
@@ -37,9 +37,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const neynar = new NeynarAPIClient(apiKey);
+    // PERBAIKAN: Inisialisasi klien dengan objek Configuration
+    const neynar = new NeynarAPIClient(new Configuration({ apiKey }));
 
-    // PERBAIKAN: Inferensi tipe pengguna langsung dari return type fungsi SDK.
+    // Inferensi tipe pengguna langsung dari return type fungsi SDK.
     // Ini adalah cara yang paling andal untuk memastikan tipe data selalu benar.
     type BulkUsersResponse = Awaited<ReturnType<typeof neynar.fetchBulkUsers>>;
     type NeynarUserType = BulkUsersResponse['users'][0];
