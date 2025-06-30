@@ -1,6 +1,6 @@
 // src/app/api/users/list/route.ts
 
-import { NeynarAPIClient, type User } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient, type UserV2 } from '@neynar/nodejs-sdk';
 import { NextResponse, NextRequest } from 'next/server';
 
 // Definisikan tipe data yang dibutuhkan oleh frontend Anda (TalentCard)
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const { users: powerBadgeUsers } = await neynar.fetchPowerBadgeUsers();
 
     // 3. Gabungkan daftar dan hapus duplikat
-    const allUsersMap = new Map<number, User>();
+    const allUsersMap = new Map<number, UserV2>();
 
     pinnedUsers.forEach(user => allUsersMap.set(user.fid, user));
     powerBadgeUsers.forEach(user => {
