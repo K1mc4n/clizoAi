@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
@@ -15,7 +14,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Anda bisa menambahkan domain lain di sini jika diperlukan
+      // Anda bisa menambahkan domain lain di sini jika diperlukan di masa depan
     ],
   },
 };
