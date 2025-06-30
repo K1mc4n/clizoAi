@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Tambahkan konfigurasi ini untuk memperbaiki error build dari walletconnect/wagmi
+  transpilePackages: [
+    '@walletconnect/ethereum-provider', 
+    '@walletconnect/universal-provider',
+    'viem'
+  ],
   images: {
     remotePatterns: [
       {
@@ -14,7 +20,6 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Anda bisa menambahkan domain lain di sini jika diperlukan di masa depan
     ],
   },
 };
