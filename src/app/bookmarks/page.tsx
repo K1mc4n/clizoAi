@@ -5,12 +5,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useMiniApp } from '@neynar/react';
 import { TalentCard, type TalentProfile } from '~/components/ui/TalentCard';
-// PERBAIKAN: Impor TalentCardSkeleton dari filenya sendiri
 import { TalentCardSkeleton } from '~/components/ui/TalentCardSkeleton'; 
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
 import { USE_WALLET } from '~/lib/constants';
 import Link from 'next/link';
+import { staticTalentData } from '~/lib/staticData'; // <-- Impor data statis
 
 export default function BookmarksPage() {
   const { context } = useMiniApp();
@@ -28,19 +28,17 @@ export default function BookmarksPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [talentsRes, bookmarksRes] = await Promise.all([
-        fetch('/api/users/list'),
-        fetch(`/api/bookmarks?fid=${userFid}`)
-      ]);
+      // Hanya fetch data bookmark dari API
+      const bookmarksRes = await fetch(`/api/bookmarks?fid=${userFid}`);
 
-      if (!talentsRes.ok || !bookmarksRes.ok) {
-        throw new Error('Failed to fetch data');
+      if (!bookmarksRes.ok) {
+        throw new Error('Failed to fetch bookmarks');
       }
-
-      const talentsData = await talentsRes.json();
+      
       const bookmarksData = await bookmarksRes.json();
 
-      const allTalents: TalentProfile[] = talentsData.talents || [];
+      // Gunakan data talenta dari file statis yang diimpor
+      const allTalents: TalentProfile[] = staticTalentData;
       const bookmarkedUsernames: string[] = bookmarksData.map((b: { talent_username: string }) => b.talent_username);
       
       const filteredTalents = allTalents.filter(t => bookmarkedUsernames.includes(t.username));
