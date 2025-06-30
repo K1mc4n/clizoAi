@@ -1,10 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Tambahkan konfigurasi ini untuk memperbaiki error build dari walletconnect/wagmi
+  // PERBAIKAN: Memperluas daftar paket yang akan di-transpile
+  // untuk memastikan semua dependensi terkait wallet diproses dengan benar.
   transpilePackages: [
-    '@walletconnect/ethereum-provider', 
+    'viem',
+    'wagmi',
+    '@wagmi/core',
+    '@wagmi/connectors',
+    '@walletconnect/ethereum-provider',
+    '@walletconnect/modal',
     '@walletconnect/universal-provider',
-    'viem'
   ],
   images: {
     remotePatterns: [
