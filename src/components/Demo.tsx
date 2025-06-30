@@ -12,13 +12,11 @@ import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
 import { SponsorBanner } from './ui/SponsorBanner';
 import { USE_WALLET } from "~/lib/constants";
-import { staticTalentData } from "~/lib/staticData"; // <-- Impor data statis
+import { staticTalentData } from "~/lib/staticData";
 
 export default function Demo({ title }: { title?: string }) {
   const { isSDKLoaded, context } = useMiniApp();
-  // Gunakan data statis sebagai state awal.
   const [talents, setTalents] = useState<TalentProfile[]>(staticTalentData);
-  // Atur isLoading ke false karena data sudah ada.
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTalent, setSelectedTalent] = useState<TalentProfile | null>(null);
@@ -26,8 +24,6 @@ export default function Demo({ title }: { title?: string }) {
   const { address } = useAccount();
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
-
-  // Logika fetch data awal telah dihapus untuk menghilangkan error.
 
   useEffect(() => {
     if (!userFid) return;
@@ -51,7 +47,7 @@ export default function Demo({ title }: { title?: string }) {
     const action = isBookmarked ? 'remove' : 'add';
     const newBookmarks = isBookmarked ? bookmarks.filter(b => b !== talent.username) : [...bookmarks, talent.username];
     setBookmarks(newBookmarks);
-    // Logika bookmark tetap menggunakan API
+    
     await fetch('/api/bookmarks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,19 +70,31 @@ export default function Demo({ title }: { title?: string }) {
         ) : (
           <>
             <SponsorBanner />
-            {/* Menghapus tampilan error karena data sekarang statis */}
+            {isLoading && (
+              <>
+                <TalentCardSkeleton />
+                <TalentCardSkeleton />
+              </>
+            )}
+            {error && <div className="text-center py-10 text-red-500">Error: {error}</div>}
             {!isLoading && !error && (
-              <div className="animate-fade-in">
-                {talents.map((t) => (
-                  <TalentCard
-                    key={t.fid}
-                    talent={t}
-                    onClick={() => handleSelectTalent(t)}
-                    isBookmarked={bookmarks.includes(t.username)}
-                    onToggleBookmark={() => toggleBookmark(t)}
-                    isLoggedIn={isLoggedIn}
-                  />
-                ))}
+              <div className="animate-fade-in space-y-3">
+                {talents.length > 0 ? (
+                  talents.map((t) => (
+                    <TalentCard
+                      key={t.fid}
+                      talent={t}
+                      onClick={() => handleSelectTalent(t)}
+                      isBookmarked={bookmarks.includes(t.username)}
+                      onToggleBookmark={() => toggleBookmark(t)}
+                      isLoggedIn={isLoggedIn}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-10 text-gray-500">
+                    No curated talents found.
+                  </div>
+                )}
               </div>
             )}
           </>
