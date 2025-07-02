@@ -10,9 +10,8 @@ import { Footer } from "~/components/ui/Footer";
 import { TalentCard, type TalentProfile } from "./ui/TalentCard";
 import { TalentDetailView } from "./ui/TalentDetailView";
 import { TalentCardSkeleton } from "./ui/TalentCardSkeleton";
-import { SponsorBanner } from './ui/SponsorBanner';
 import { USE_WALLET } from "~/lib/constants";
-import { staticTalentData } from "~/lib/staticData"; // <-- Impor data statis
+import { staticTalentData } from "~/lib/staticData";
 
 export default function Demo({ title }: { title?: string }) {
   const { isSDKLoaded, context } = useMiniApp();
@@ -73,8 +72,7 @@ export default function Demo({ title }: { title?: string }) {
           <TalentDetailView talent={selectedTalent} onBack={handleBackToList} loggedInUserAddress={address} />
         ) : (
           <>
-            <SponsorBanner />
-            {/* Menghapus tampilan error karena data sekarang statis */}
+            {/* SponsorBanner telah dihapus dari sini */}
             {!isLoading && !error && (
               <div className="animate-fade-in">
                 {talents.map((t) => (
