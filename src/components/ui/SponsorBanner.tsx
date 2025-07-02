@@ -66,7 +66,8 @@ export const SponsorBanner = () => {
 
   return (
     // Melakukan iterasi (map) pada array sponsor dan merender setiap kartu
-    <div className="mb-6 space-y-4">
+    // Margin bawah (mb-6) telah dihapus dari sini
+    <div className="space-y-4">
       {sponsors.map((sponsor) => (
         <SponsorCard key={sponsor.name} sponsor={sponsor} />
       ))}
