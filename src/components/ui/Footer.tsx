@@ -2,12 +2,12 @@
 
 'use client';
 
-import { Home, Star, Wallet, BarChart3, type LucideIcon } from 'lucide-react';
+import { Home, Star, Wallet, BarChart3, Award, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 // Definisikan tipe untuk tab yang akan kita gunakan
-export type Tab = 'home' | 'markets' | 'bookmarks' | 'wallet';
+export type Tab = 'home' | 'markets' | 'bookmarks' | 'wallet' | 'sponsors';
 
 interface FooterItemProps {
   href: string;
@@ -39,6 +39,7 @@ export function Footer({ showWallet = false }: { showWallet?: boolean }) {
     if (pathname.startsWith('/markets')) return 'markets';
     if (pathname.startsWith('/bookmarks')) return 'bookmarks';
     if (pathname.startsWith('/wallet')) return 'wallet';
+    if (pathname.startsWith('/sponsors')) return 'sponsors';
     return 'home';
   };
 
@@ -49,6 +50,7 @@ export function Footer({ showWallet = false }: { showWallet?: boolean }) {
       <div className="flex justify-around max-w-lg mx-auto px-2">
         <FooterItem href="/app" icon={Home} label="Home" isActive={activeTab === 'home'} />
         <FooterItem href="/markets" icon={BarChart3} label="Markets" isActive={activeTab === 'markets'} />
+        <FooterItem href="/sponsors" icon={Award} label="Sponsors" isActive={activeTab === 'sponsors'} />
         <FooterItem href="/bookmarks" icon={Star} label="Bookmarks" isActive={activeTab === 'bookmarks'} />
         {showWallet && (
           <FooterItem href="/wallet" icon={Wallet} label="Wallet" isActive={activeTab === 'wallet'} />
