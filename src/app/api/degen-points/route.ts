@@ -28,27 +28,23 @@ export async function POST(request: NextRequest) {
       
       const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
       
-      // PERBAIKAN FINAL: Kirim username sebagai objek
       const userLookup = await neynarClient.lookupUserByUsername({ 
         username: query.replace('@', '') 
       });
 
-      const fid = userLookup.result.user.fid;
-
-      const { users } = await neynarClient.fetchBulkUsers([fid]);
-      const user = users[0];
-
-      if (!user) {
-        return NextResponse.json({ error: `Farcaster user @${query} not found.` }, { status: 404 });
-      }
-
-      const custodyAddress = user.custody_address;
-      if (!custodyAddress) {
+      // PERBAIKAN FINAL: Akses data pengguna langsung dari 'userLookup.user'
+      const user = userLookup.user;
+      
+      if (!user || !user.custody_address) {
+        // Cek juga apakah custody_address ada di sini
         return NextResponse.json({ error: `Could not find a connected wallet for user @${query}.` }, { status: 404 });
       }
-      targetAddress = custodyAddress;
+
+      // Langsung gunakan custody_address dari lookup pertama
+      targetAddress = user.custody_address;
     }
 
+    // Setelah mendapatkan alamat, panggil API Degen.tips
     const degenApiUrl = `https://www.degen.tips/api/airdrop2/season3/points?address=${targetAddress}`;
     const degenResponse = await fetch(degenApiUrl);
 
