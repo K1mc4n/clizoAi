@@ -8,10 +8,10 @@ import { Footer } from '~/components/ui/Footer';
 import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/Button';
 import { type DegenPointsData, DegenPointsResult } from '~/components/ui/DegenPointsResult';
-import { useMiniApp } from '@neynar/react'; // Impor hook
+import { useMiniApp } from '@neynar/react';
 
 export default function DegenCheckerPage() {
-  const { context } = useMiniApp(); // Gunakan hook untuk mendapatkan info pengguna
+  const { context } = useMiniApp();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<DegenPointsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +47,13 @@ export default function DegenCheckerPage() {
       setIsLoading(false);
     }
   };
+  
+  // PERBAIKAN: Buat fungsi terpisah dengan pengecekan yang aman
+  const handleCheckOwnPoints = () => {
+    if (context?.user?.username) {
+      setQuery(context.user.username);
+    }
+  };
 
   return (
     <div>
@@ -75,7 +82,8 @@ export default function DegenCheckerPage() {
           <div className="text-center mt-4">
              <Button 
                 variant="link"
-                onClick={() => setQuery(context.user!.username)}
+                // Panggil fungsi yang sudah aman
+                onClick={handleCheckOwnPoints}
                 className="text-purple-500"
               >
                 Check my own points (@{context.user.username})
@@ -85,7 +93,6 @@ export default function DegenCheckerPage() {
 
         <div className="mt-6">
           {isLoading && <p className="text-center">Loading...</p>}
-          {/* Tampilkan komponen hasil dengan data atau error */}
           {!isLoading && (result || error) && (
             <DegenPointsResult data={result || undefined} error={error || undefined} query={submittedQuery} />
           )}
