@@ -1,3 +1,5 @@
+// src/app/api/bookmarks/route.ts
+
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -11,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('bookmarks')
-    .select('talent_username')
+    .select('app_id') // Mengambil app_id
     .eq('user_fid', user_fid);
   
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -19,20 +21,20 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { user_fid, talent_username, action } = await request.json();
+  const { user_fid, app_id, action } = await request.json(); // Menerima app_id
   
-  if (!user_fid || !talent_username || !action) {
+  if (!user_fid || !app_id || !action) {
     return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   }
   
   if (action === 'add') {
-    const { error } = await supabase.from('bookmarks').insert({ user_fid, talent_username });
+    const { error } = await supabase.from('bookmarks').insert({ user_fid, app_id });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ message: 'Bookmarked!' });
   }
 
   if (action === 'remove') {
-    const { error } = await supabase.from('bookmarks').delete().match({ user_fid, talent_username });
+    const { error } = await supabase.from('bookmarks').delete().match({ user_fid, app_id });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ message: 'Bookmark removed' });
   }
