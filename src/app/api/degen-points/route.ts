@@ -1,7 +1,6 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-// 1. Impor 'Configuration' dari SDK Neynar
 import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 // Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
@@ -27,10 +26,10 @@ export async function POST(request: NextRequest) {
       const neynarApiKey = process.env.NEYNAR_API_KEY;
       if (!neynarApiKey) throw new Error('Neynar API key is not configured.');
       
-      // 2. PERBAIKAN: Bungkus API key di dalam objek Configuration
       const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
       
-      const { users } = await neynarClient.fetchBulkUsers([query], { viewerFid: 0 });
+      // PERBAIKAN: Gabungkan parameter menjadi satu objek
+      const { users } = await neynarClient.fetchBulkUsersByUsername([query]);
       const user = users[0];
 
       if (!user) {
