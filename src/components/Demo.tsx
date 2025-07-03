@@ -32,7 +32,6 @@ export default function Demo({ title }: { title?: string }) {
   }, [userFid]);
 
   const handleLaunchApp = (url: string) => {
-    // PERBAIKAN: Gunakan 'actions.openUrl'
     if (isSDKLoaded && actions.openUrl) {
       actions.openUrl(url);
     } else {
@@ -69,9 +68,10 @@ export default function Demo({ title }: { title?: string }) {
       <div className="mx-auto py-2 px-4 pb-20">
         <Header />
         <h1 className="text-2xl font-bold text-center mb-1">{title}</h1>
-        <p className="text-center text-gray-500 mb-4">A curated directory of Farcaster Mini Apps.</p>
+        <p className="text-center text-gray-500 mb-6">A curated directory of Farcaster Mini Apps.</p>
         
-        <div className="animate-fade-in">
+        {/* --- PERUBAHAN TATA LETAK DI SINI --- */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
           {miniAppsData.map((app) => (
             <MiniAppCard
               key={app.id}
