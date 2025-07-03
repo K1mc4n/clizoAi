@@ -1,7 +1,8 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+// 1. Impor 'Configuration' dari SDK Neynar
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 // Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
@@ -26,11 +27,18 @@ export async function POST(request: NextRequest) {
       const neynarApiKey = process.env.NEYNAR_API_KEY;
       if (!neynarApiKey) throw new Error('Neynar API key is not configured.');
       
-      const neynarClient = new NeynarAPIClient(neynarApiKey);
-      const user = await neynarClient.lookupUserByUsername(query);
+      // 2. PERBAIKAN: Bungkus API key di dalam objek Configuration
+      const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
       
+      const { users } = await neynarClient.fetchBulkUsers([query], { viewerFid: 0 });
+      const user = users[0];
+
+      if (!user) {
+        return NextResponse.json({ error: `Farcaster user @${query} not found.` }, { status: 404 });
+      }
+
       // Ambil custody_address, yang paling sering digunakan untuk airdrop
-      const custodyAddress = user.result.user.custody_address;
+      const custodyAddress = user.custody_address;
       if (!custodyAddress) {
         return NextResponse.json({ error: `Could not find a connected wallet for user @${query}.` }, { status: 404 });
       }
@@ -42,7 +50,6 @@ export async function POST(request: NextRequest) {
     const degenResponse = await fetch(degenApiUrl);
 
     if (!degenResponse.ok) {
-      // Coba parsing error dari Degen API jika ada
       try {
         const errorData = await degenResponse.json();
         const errorMessage = errorData.error || 'Failed to fetch points from Degen API.';
@@ -57,9 +64,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Error in /api/degen-points:', error.message);
-    const errorMessage = error.message.includes('User not found') 
-      ? `Farcaster user "${query}" not found.`
-      : `An error occurred: ${error.message}`;
+    const errorMessage = `An error occurred: ${error.message}`;
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
