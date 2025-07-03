@@ -10,11 +10,32 @@ export interface MiniApp {
 }
 
 export const miniAppsData: MiniApp[] = [
+  // --- SPONSOR DI POSISI TERATAS ---
+  {
+    id: 'poidh-app',
+    name: 'poidh',
+    description: "poidh: \"pics or it didn't happen\". Onchain social media.",
+    // Menggunakan logo poidh yang sudah ada di proyek Anda.
+    // Pastikan file '152807131.png' ada di dalam folder 'public'.
+    iconUrl: '/152807131.png',
+    url: 'https://poidh.xyz/',
+    tags: ['Social', 'On-chain', 'Sponsored'],
+  },
+  {
+    id: 'seconds-money-app',
+    name: 'seconds.money',
+    description: 'The social wallet for onchain creators and communities.',
+    // Anda perlu menambahkan logo untuk seconds.money ke folder public/images
+    iconUrl: '/images/seconds-money-logo.png',
+    url: 'https://seconds.money/',
+    tags: ['Wallet', 'Creator Tools', 'Sponsored'],
+  },
+  // --- DAFTAR APLIKASI LAINNYA ---
   {
     id: 'buidl-app',
     name: 'Buidl',
     description: 'Invest in your favorite Farcaster builders and earn rewards.',
-    iconUrl: 'https://i.imgur.com/g91e5y5.jpeg', // Imgur biasanya aman
+    iconUrl: '/images/buidl-logo.jpeg',
     url: 'https://buidl.so',
     tags: ['SocialFi', 'Investing'],
   },
@@ -22,7 +43,7 @@ export const miniAppsData: MiniApp[] = [
     id: 'fantasy-top-app',
     name: 'Fantasy Top',
     description: 'The crypto fantasy game for Crypto Twitter influencers on Blast.',
-    iconUrl: 'https://d31h136f621G5c.cloudfront.net/images/games/fantasy-top.png', // Cloudfront aman
+    iconUrl: '/images/fantasy-top-logo.png',
     url: 'https://www.fantasy.top/',
     tags: ['GameFi', 'Social'],
   },
@@ -30,7 +51,7 @@ export const miniAppsData: MiniApp[] = [
     id: 'unlonely-app',
     name: 'Unlonely',
     description: 'A Web3 streaming platform with interactive and token-gated features.',
-    iconUrl: 'https://i.seadn.io/s/raw/files/dd483ada345157442a1215448744b63e.png?auto=format&dpr=1&w=1000', // OpenSea CDN aman
+    iconUrl: '/images/unlonely-logo.png',
     url: 'https://unlonely.app/',
     tags: ['Streaming', 'Video'],
   },
@@ -38,8 +59,7 @@ export const miniAppsData: MiniApp[] = [
     id: 'base-paint-app',
     name: 'Base Paint',
     description: 'A collaborative on-chain pixel art canvas on the Base network.',
-    // --- PERBAIKAN DI SINI ---
-    iconUrl: '/images/base-paint-logo.jpg', 
+    iconUrl: '/images/base-paint-logo.jpg',
     url: 'https://basepaint.xyz/',
     tags: ['Art', 'On-chain'],
   },
@@ -47,7 +67,6 @@ export const miniAppsData: MiniApp[] = [
     id: 'bountycaster-app',
     name: 'Bountycaster',
     description: 'A platform for creating and discovering bounties on Farcaster.',
-    // --- PERBAIKAN DI SINI ---
     iconUrl: '/images/bountycaster-logo.jpg',
     url: 'https://www.bountycaster.xyz/',
     tags: ['Bounties', 'Gigs', 'Web3'],
@@ -56,8 +75,32 @@ export const miniAppsData: MiniApp[] = [
     id: 'perl-app',
     name: 'Perl',
     description: 'A peer-to-peer prediction market on Farcaster.',
-    iconUrl: 'https://i.imgur.com/vHqj5jY.png', // Imgur aman
+    iconUrl: '/images/perl-logo.png',
     url: 'https://perl.xyz/',
     tags: ['Predictions', 'SocialFi', 'Betting'],
   },
+  {
+    id: 'zora-app',
+    name: 'Zora',
+    description: 'A decentralized protocol to mint, share, and collect NFTs on-chain.',
+    iconUrl: '/images/zora-logo.png',
+    url: 'https://zora.co',
+    tags: ['NFTs', 'Art', 'Protocol'],
+  },
+  {
+    id: 'base-app',
+    name: 'Base',
+    description: 'Bridge and manage assets on Base, a secure, low-cost Ethereum L2.',
+    iconUrl: '/images/base-logo.png',
+    url: 'https://bridge.base.org/',
+    tags: ['L2', 'Bridge', 'Infrastructure'],
+  },
+  {
+    id: 'degen-app',
+    name: 'Degen',
+    description: 'A community token for the Farcaster ecosystem, often used for tipping.',
+    iconUrl: '/images/degen-logo.png',
+    url: 'https://degen.tips/',
+    tags: ['Community', 'Token', 'SocialFi'],
+  }
 ];
