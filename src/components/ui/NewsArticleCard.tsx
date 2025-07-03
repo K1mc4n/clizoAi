@@ -1,6 +1,5 @@
 // src/components/ui/NewsArticleCard.tsx
 
-// 1. Impor komponen ShareButton
 import { ShareButton } from './Share';
 import { APP_NAME } from '~/lib/constants';
 
@@ -29,14 +28,13 @@ export const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
     day: 'numeric',
   });
 
-  // 2. Siapkan konfigurasi untuk cast yang akan dibagikan
+  // PERBAIKAN: 'embeds' sekarang adalah array of strings
   const castConfig = {
     text: `Interesting read: "${article.title}"\n\nShared from ${APP_NAME}.`,
-    embeds: [{ url: article.url }], // Menyematkan URL artikel berita
+    embeds: [article.url] as [string], // Kirim URL sebagai string dalam array
   };
 
   return (
-    // Kita ubah dari <a> menjadi <div> agar tombol share bisa berfungsi dengan baik di dalamnya
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden my-4 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
       <a href={article.url} target="_blank" rel="noopener noreferrer">
         {article.urlToImage && (
@@ -64,11 +62,10 @@ export const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
           <p className="text-xs text-gray-500">
             {formattedDate}
           </p>
-          {/* 3. Tambahkan tombol ShareButton di sini */}
           <ShareButton 
             buttonText="Share"
             cast={castConfig}
-            className="px-3 py-1 h-auto text-sm" // Membuat tombol lebih kecil
+            className="px-3 py-1 h-auto text-sm"
           />
         </div>
       </div>
