@@ -3,7 +3,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-// PERBAIKAN: Gunakan 'actions' dari useMiniApp
 import { useMiniApp } from '@neynar/react';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
@@ -13,7 +12,6 @@ import { USE_WALLET } from '~/lib/constants';
 import Link from 'next/link';
 
 export default function BookmarksPage() {
-  // PERBAIKAN: Destrukturisasi 'actions' dari useMiniApp
   const { context, actions } = useMiniApp();
   const [bookmarkedApps, setBookmarkedApps] = useState<MiniApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,9 +44,9 @@ export default function BookmarksPage() {
   }, [userFid]);
   
   const handleLaunchApp = (url: string) => {
-    // PERBAIKAN: Gunakan 'actions.openFrame'
-    if (context && actions.openFrame) {
-      actions.openFrame(url);
+    // PERBAIKAN: Gunakan 'actions.openUrl'
+    if (context && actions.openUrl) {
+      actions.openUrl(url);
     } else {
       window.open(url, '_blank');
     }
@@ -95,7 +93,7 @@ export default function BookmarksPage() {
                               app={app} 
                               onLaunch={handleLaunchApp}
                               isBookmarked={true}
-                              onToggleBookmark={() => fetchBookmarkedApps()} // Refresh list on toggle
+                              onToggleBookmark={() => fetchBookmarkedApps()}
                               isLoggedIn={!!userFid}
                             />
                         ))
