@@ -4,23 +4,23 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useMiniApp } from '@neynar/react';
-import { TalentCard, type TalentProfile } from '~/components/ui/TalentCard';
-import { TalentCardSkeleton } from '~/components/ui/TalentCardSkeleton'; 
+import sdk from "@farcaster/frame-sdk";
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
+import { MiniAppCard } from '~/components/ui/MiniAppCard';
+import { MiniApp, miniAppsData } from '~/lib/miniAppsData';
 import { USE_WALLET } from '~/lib/constants';
 import Link from 'next/link';
-import { staticTalentData } from '~/lib/staticData'; // <-- Impor data statis
 
 export default function BookmarksPage() {
   const { context } = useMiniApp();
-  const [bookmarkedTalents, setBookmarkedTalents] = useState<TalentProfile[]>([]);
+  const [bookmarkedApps, setBookmarkedApps] = useState<MiniApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const userFid = context?.user?.fid;
 
-  const fetchBookmarkedTalents = useCallback(async () => {
+  const fetchBookmarkedApps = useCallback(async () => {
     if (!userFid) {
       setIsLoading(false);
       return;
@@ -28,21 +28,14 @@ export default function BookmarksPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Hanya fetch data bookmark dari API
       const bookmarksRes = await fetch(`/api/bookmarks?fid=${userFid}`);
-
-      if (!bookmarksRes.ok) {
-        throw new Error('Failed to fetch bookmarks');
-      }
+      if (!bookmarksRes.ok) throw new Error('Failed to fetch bookmarks');
       
       const bookmarksData = await bookmarksRes.json();
-
-      // Gunakan data talenta dari file statis yang diimpor
-      const allTalents: TalentProfile[] = staticTalentData;
-      const bookmarkedUsernames: string[] = bookmarksData.map((b: { talent_username: string }) => b.talent_username);
+      const bookmarkedIds: string[] = bookmarksData.map((b: { app_id: string }) => b.app_id);
       
-      const filteredTalents = allTalents.filter(t => bookmarkedUsernames.includes(t.username));
-      setBookmarkedTalents(filteredTalents);
+      const filteredApps = miniAppsData.filter(app => bookmarkedIds.includes(app.id));
+      setBookmarkedApps(filteredApps);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -50,28 +43,37 @@ export default function BookmarksPage() {
       setIsLoading(false);
     }
   }, [userFid]);
+  
+  const handleLaunchApp = (url: string) => {
+    if (context) {
+      sdk.openFrame({ url });
+    } else {
+      window.open(url, '_blank');
+    }
+  };
 
   useEffect(() => {
     if (context?.user) {
-        fetchBookmarkedTalents();
+      fetchBookmarkedApps();
     }
-  }, [context?.user, fetchBookmarkedTalents]);
+  }, [context?.user, fetchBookmarkedApps]);
 
+  // Sisanya sama seperti kode sebelumnya...
   if (!userFid) {
     return (
-        <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
-            <div className="mx-auto py-2 px-4 pb-20">
-                <Header />
-                <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarks</h1>
-                <div className="flex flex-col items-center justify-center text-center p-4 h-64">
-                    <p className="mb-4">Please open in a Farcaster client to see your bookmarks.</p>
-                    <Link href="/app" className="text-blue-500 hover:underline">
-                        Go back to Home
-                    </Link>
-                </div>
-            </div>
-            <Footer showWallet={USE_WALLET} />
+      <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
+        <div className="mx-auto py-2 px-4 pb-20">
+          <Header />
+          <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarks</h1>
+          <div className="flex flex-col items-center justify-center text-center p-4 h-64">
+            <p className="mb-4">Please open in a Farcaster client to see your bookmarks.</p>
+            <Link href="/" className="text-blue-500 hover:underline">
+              Go back to Home
+            </Link>
+          </div>
         </div>
+        <Footer showWallet={USE_WALLET} />
+      </div>
     );
   }
 
@@ -79,29 +81,30 @@ export default function BookmarksPage() {
     <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
         <div className="mx-auto py-2 px-4 pb-20">
             <Header />
-            <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarks</h1>
+            <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarked Apps</h1>
 
-            <div className="space-y-3">
-                {isLoading && <>{Array.from({ length: 5 }).map((_, i) => <TalentCardSkeleton key={i} />)}</>}
+            <div>
+                {isLoading && <p>Loading...</p>}
                 {error && <div className="text-center py-10 text-red-500">{error}</div>}
                 {!isLoading && !error && (
-                    bookmarkedTalents.length > 0 ? (
-                        bookmarkedTalents.map((talent) => (
-                            <TalentCard 
-                              key={talent.fid} 
-                              talent={talent} 
-                              onClick={() => {}}
+                    bookmarkedApps.length > 0 ? (
+                        bookmarkedApps.map((app) => (
+                            <MiniAppCard 
+                              key={app.id} 
+                              app={app} 
+                              onLaunch={handleLaunchApp}
+                              // Di halaman bookmark, kita bisa anggap semua sudah di-bookmark
                               isBookmarked={true}
-                              onToggleBookmark={() => {}}
+                              onToggleBookmark={() => { /* opsional: bisa refresh list */ }}
                               isLoggedIn={!!userFid}
                             />
                         ))
                     ) : (
                         <div className="text-center py-10 text-gray-500">
-                          You have no bookmarked talents yet.
+                          You have no bookmarked apps yet.
                           <br/> 
-                          <Link href="/app" className="text-blue-500 hover:underline">
-                            Find users on the Home page.
+                          <Link href="/" className="text-blue-500 hover:underline">
+                            Find apps on the Home page.
                           </Link>
                         </div>
                     )
