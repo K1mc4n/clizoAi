@@ -85,14 +85,6 @@ export const miniAppsData: MiniApp[] = [
     tags: ['NFTs', 'Art', 'Protocol'],
   },
   {
-    id: 'base-app',
-    name: 'Base',
-    description: 'Bridge and manage assets on Base, a secure, low-cost Ethereum L2.',
-    iconUrl: '/images/base-logo.png',
-    url: 'https://bridge.base.org/',
-    tags: ['L2', 'Bridge', 'Infrastructure'],
-  },
-  {
     id: 'degen-app',
     name: 'Degen',
     description: 'A community token for the Farcaster ecosystem, often used for tipping.',
@@ -100,7 +92,6 @@ export const miniAppsData: MiniApp[] = [
     url: 'https://degen.tips/',
     tags: ['Community', 'Token', 'SocialFi'],
   },
-  // --- 14 APLIKASI BARU DITAMBAHKAN DI SINI ---
   {
     id: 'paragraph-app',
     name: 'Paragraph',
@@ -116,14 +107,6 @@ export const miniAppsData: MiniApp[] = [
     iconUrl: '/images/sound-logo.png',
     url: 'https://www.sound.xyz/',
     tags: ['Music', 'NFTs'],
-  },
-  {
-    id: 'kiwi-news-app',
-    name: 'Kiwi News',
-    description: 'A community-curated news aggregator for the Farcaster ecosystem.',
-    iconUrl: '/images/kiwi-news-logo.png',
-    url: 'https://kiwi.news/',
-    tags: ['News', 'Community'],
   },
   {
     id: 'opepen-app',
@@ -158,59 +141,11 @@ export const miniAppsData: MiniApp[] = [
     tags: ['Social', 'Curation'],
   },
   {
-    id: 'payrecs-app',
-    name: 'Payrecs',
-    description: 'Create and share on-chain payment requests easily.',
-    iconUrl: '/images/payrecs-logo.png',
-    url: 'https://payrecs.com/',
-    tags: ['Payments', 'Tools'],
-  },
-  {
-    id: 'alerts-boo-app',
-    name: 'Alerts.boo',
-    description: 'Get real-time on-chain notifications for any wallet or contract.',
-    iconUrl: '/images/alerts-boo-logo.png',
-    url: 'https://alerts.boo/',
-    tags: ['Tools', 'Notifications'],
-  },
-  {
-    id: 'once-upon-app',
-    name: 'Once Upon',
-    description: 'A platform to create and explore visual stories of on-chain activity.',
-    iconUrl: '/images/once-upon-logo.png',
-    url: 'https://onceupon.gg/',
-    tags: ['On-chain', 'Storytelling', 'Tools'],
-  },
-  {
     id: 'nounspace-app',
     name: 'Nounspace',
     description: 'A community client for Nouns DAO and its many forks.',
     iconUrl: '/images/nounspace-logo.png',
     url: 'https://noun.space/',
     tags: ['DAO', 'Community'],
-  },
-  {
-    id: 'ponder-app',
-    name: 'Ponder',
-    description: 'Ask questions, get answers, and reward the best responses on-chain.',
-    iconUrl: '/images/ponder-logo.png',
-    url: 'https://www.ponder.so/',
-    tags: ['Social', 'Q&A'],
-  },
-  {
-    id: 'jam-app',
-    name: 'Jam',
-    description: 'A social-native music creation and collecting platform.',
-    iconUrl: '/images/jam-logo.png',
-    url: 'https://jam.so/',
-    tags: ['Music', 'Creator Tools'],
-  },
-  {
-    id: 'warpcast-app',
-    name: 'Warpcast',
-    description: 'The official, primary client for the Farcaster protocol.',
-    iconUrl: '/images/warpcast-logo.png',
-    url: 'https://warpcast.com/',
-    tags: ['Client', 'Social', 'Official'],
   }
 ];
