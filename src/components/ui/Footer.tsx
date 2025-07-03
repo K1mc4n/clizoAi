@@ -2,13 +2,11 @@
 
 'use client';
 
-// Tambahkan ikon CircleDollarSign
-import { Home, Newspaper, CircleDollarSign, type LucideIcon } from 'lucide-react';
+import { Home, Newspaper, CircleDollarSign, BarChart3, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-// Tambahkan 'degen' ke tipe Tab
-export type Tab = 'home' | 'news' | 'degen';
+export type Tab = 'home' | 'degen' | 'news' | 'leaderboard';
 
 interface FooterItemProps {
   href: string;
@@ -38,6 +36,7 @@ export function Footer() {
   const getActiveTab = (): Tab => {
     if (pathname.startsWith('/news')) return 'news';
     if (pathname.startsWith('/degen-checker')) return 'degen';
+    if (pathname.startsWith('/leaderboard')) return 'leaderboard';
     return 'home';
   };
 
@@ -47,7 +46,7 @@ export function Footer() {
     <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
       <div className="flex justify-around max-w-lg mx-auto px-2">
         <FooterItem href="/app" icon={Home} label="Home" isActive={activeTab === 'home'} />
-        {/* Tambahkan Tombol Degen Checker di sini */}
+        <FooterItem href="/leaderboard" icon={BarChart3} label="Board" isActive={activeTab === 'leaderboard'} />
         <FooterItem href="/degen-checker" icon={CircleDollarSign} label="Degen" isActive={activeTab === 'degen'} />
         <FooterItem href="/news" icon={Newspaper} label="News" isActive={activeTab === 'news'} />
       </div>
