@@ -22,21 +22,25 @@ export async function POST(request: NextRequest) {
     if (isEthereumAddress(query)) {
       targetAddress = query;
     } else {
-      // Jika bukan alamat, anggap sebagai username dan cari alamatnya via Neynar
+      // Jika bukan alamat, anggap sebagai username
       const neynarApiKey = process.env.NEYNAR_API_KEY;
       if (!neynarApiKey) throw new Error('Neynar API key is not configured.');
       
       const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
       
-      // PERBAIKAN: Gabungkan parameter menjadi satu objek
-      const { users } = await neynarClient.fetchBulkUsersByUsername([query]);
+      // Langkah 1: Cari pengguna berdasarkan username untuk mendapatkan FID mereka
+      const userLookup = await neynarClient.lookupUserByUsername(query.replace('@', ''));
+      const fid = userLookup.result.user.fid;
+
+      // Langkah 2: Gunakan FID untuk mendapatkan detail pengguna lengkap, termasuk custody_address
+      const { users } = await neynarClient.fetchBulkUsers([fid]);
       const user = users[0];
 
       if (!user) {
         return NextResponse.json({ error: `Farcaster user @${query} not found.` }, { status: 404 });
       }
 
-      // Ambil custody_address, yang paling sering digunakan untuk airdrop
+      // Ambil custody_address
       const custodyAddress = user.custody_address;
       if (!custodyAddress) {
         return NextResponse.json({ error: `Could not find a connected wallet for user @${query}.` }, { status: 404 });
@@ -62,6 +66,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(degenData);
 
   } catch (error: any) {
+    // Penanganan error yang lebih baik untuk user not found
+    if (error.response && error.response.data && error.response.data.message === 'User not found!') {
+        return NextResponse.json({ error: `Farcaster user "${query}" not found.` }, { status: 404 });
+    }
     console.error('Error in /api/degen-points:', error.message);
     const errorMessage = `An error occurred: ${error.message}`;
     return NextResponse.json({ error: errorMessage }, { status: 500 });
