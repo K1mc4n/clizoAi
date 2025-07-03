@@ -65,12 +65,12 @@ export default function BookmarksPage() {
           <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarks</h1>
           <div className="flex flex-col items-center justify-center text-center p-4 h-64">
             <p className="mb-4">Please open in a Farcaster client to see your bookmarks.</p>
-            <Link href="/" className="text-blue-500 hover:underline">
+            {/* PERBAIKAN DI SINI: href diubah menjadi "/app" */}
+            <Link href="/app" className="text-blue-500 hover:underline">
               Go back to Home
             </Link>
           </div>
         </div>
-        {/* Memanggil Footer tanpa prop */}
         <Footer />
       </div>
     );
@@ -101,7 +101,8 @@ export default function BookmarksPage() {
                         <div className="text-center py-10 text-gray-500 col-span-4">
                           You have no bookmarked apps yet.
                           <br/> 
-                          <Link href="/" className="text-blue-500 hover:underline">
+                          {/* PERBAIKAN DI SINI: href diubah menjadi "/app" */}
+                          <Link href="/app" className="text-blue-500 hover:underline">
                             Find apps on the Home page.
                           </Link>
                         </div>
@@ -109,8 +110,7 @@ export default function BookmarksPage() {
                 )}
             </div>
         </div>
-        {/* Memanggil Footer tanpa prop */}
         <Footer />
     </div>
   );
-}
+                              }
