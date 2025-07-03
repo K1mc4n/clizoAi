@@ -1,7 +1,11 @@
 // src/components/ui/NewsArticleCard.tsx
 
+// 1. Impor `useState` dan ikon `Copy`
+import { useState } from 'react';
+import { Copy } from 'lucide-react';
 import { ShareButton } from './Share';
 import { APP_NAME } from '~/lib/constants';
+import { Button } from './Button'; // Impor Button untuk tombol copy
 
 export interface Article {
   source: {
@@ -22,16 +26,28 @@ interface NewsArticleCardProps {
 }
 
 export const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
+  // 2. Tambahkan state untuk mengelola teks tombol "Copy"
+  const [copyText, setCopyText] = useState('Copy');
+
   const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  // PERBAIKAN: 'embeds' sekarang adalah array of strings
   const castConfig = {
     text: `Interesting read: "${article.title}"\n\nShared from ${APP_NAME}.`,
-    embeds: [article.url] as [string], // Kirim URL sebagai string dalam array
+    embeds: [article.url] as [string],
+  };
+
+  // 3. Buat fungsi untuk menyalin link
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Mencegah event lain terpicu
+    navigator.clipboard.writeText(article.url);
+    setCopyText('Copied!');
+    setTimeout(() => {
+      setCopyText('Copy');
+    }, 2000); // Reset teks setelah 2 detik
   };
 
   return (
@@ -62,11 +78,22 @@ export const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
           <p className="text-xs text-gray-500">
             {formattedDate}
           </p>
-          <ShareButton 
-            buttonText="Share"
-            cast={castConfig}
-            className="px-3 py-1 h-auto text-sm"
-          />
+          {/* 4. Tambahkan grup tombol untuk Share dan Copy */}
+          <div className="flex items-center space-x-2">
+            <Button 
+              onClick={handleCopyLink}
+              variant="secondary"
+              className="px-3 py-1 h-auto text-sm"
+            >
+              <Copy className="w-3 h-3 mr-1.5" />
+              {copyText}
+            </Button>
+            <ShareButton 
+              buttonText="Share"
+              cast={castConfig}
+              className="px-3 py-1 h-auto text-sm"
+            />
+          </div>
         </div>
       </div>
     </div>
