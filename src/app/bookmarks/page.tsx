@@ -44,7 +44,6 @@ export default function BookmarksPage() {
   }, [userFid]);
   
   const handleLaunchApp = (url: string) => {
-    // PERBAIKAN: Gunakan 'actions.openUrl'
     if (context && actions.openUrl) {
       actions.openUrl(url);
     } else {
@@ -71,7 +70,8 @@ export default function BookmarksPage() {
             </Link>
           </div>
         </div>
-        <Footer showWallet={USE_WALLET} />
+        {/* Memanggil Footer tanpa prop */}
+        <Footer />
       </div>
     );
   }
@@ -82,7 +82,7 @@ export default function BookmarksPage() {
             <Header />
             <h1 className="text-2xl font-bold text-center mb-6">Your Bookmarked Apps</h1>
 
-            <div>
+            <div className="grid grid-cols-4 gap-2">
                 {isLoading && <p>Loading...</p>}
                 {error && <div className="text-center py-10 text-red-500">{error}</div>}
                 {!isLoading && !error && (
@@ -98,7 +98,7 @@ export default function BookmarksPage() {
                             />
                         ))
                     ) : (
-                        <div className="text-center py-10 text-gray-500">
+                        <div className="text-center py-10 text-gray-500 col-span-4">
                           You have no bookmarked apps yet.
                           <br/> 
                           <Link href="/" className="text-blue-500 hover:underline">
@@ -109,7 +109,8 @@ export default function BookmarksPage() {
                 )}
             </div>
         </div>
-        <Footer showWallet={USE_WALLET} />
+        {/* Memanggil Footer tanpa prop */}
+        <Footer />
     </div>
   );
 }
