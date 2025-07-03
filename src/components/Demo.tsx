@@ -3,21 +3,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+// PERBAIKAN: Impor 'actions' dari useMiniApp
 import { useMiniApp } from "@neynar/react";
-import sdk from "@farcaster/frame-sdk";
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
 import { USE_WALLET } from "~/lib/constants";
-import { miniAppsData, type MiniApp } from "~/lib/miniAppsData"; // Impor data & tipe MiniApp
-import { MiniAppCard } from "./ui/MiniAppCard"; // Impor komponen kartu MiniApp
+import { miniAppsData, type MiniApp } from "~/lib/miniAppsData";
+import { MiniAppCard } from "./ui/MiniAppCard";
 
 export default function Demo({ title }: { title?: string }) {
-  const { isSDKLoaded, context } = useMiniApp();
-  const [bookmarks, setBookmarks] = useState<string[]>([]); // Menyimpan ID aplikasi yang di-bookmark
+  // PERBAIKAN: Destrukturisasi 'actions' dari useMiniApp
+  const { isSDKLoaded, context, actions } = useMiniApp();
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
   const userFid = context?.user?.fid;
   const isLoggedIn = !!userFid;
 
-  // Mengambil bookmark saat komponen dimuat
   useEffect(() => {
     if (!userFid) return;
     const fetchAndSetBookmarks = async () => {
@@ -25,7 +25,6 @@ export default function Demo({ title }: { title?: string }) {
         const response = await fetch(`/api/bookmarks?fid=${userFid}`);
         if (!response.ok) return;
         const data = await response.json();
-        // Pastikan API mengembalikan app_id
         setBookmarks(data.map((b: { app_id: string }) => b.app_id));
       } catch (e) {
         console.error("Failed to fetch bookmarks:", e);
@@ -35,8 +34,9 @@ export default function Demo({ title }: { title?: string }) {
   }, [userFid]);
 
   const handleLaunchApp = (url: string) => {
-    if (isSDKLoaded) {
-      sdk.openFrame({ url });
+    // PERBAIKAN: Gunakan 'actions.openFrame'
+    if (isSDKLoaded && actions.openFrame) {
+      actions.openFrame(url);
     } else {
       window.open(url, '_blank');
     }
@@ -50,13 +50,11 @@ export default function Demo({ title }: { title?: string }) {
     const isBookmarked = bookmarks.includes(app.id);
     const action = isBookmarked ? 'remove' : 'add';
 
-    // Optimistic UI update
     const newBookmarks = isBookmarked
       ? bookmarks.filter(id => id !== app.id)
       : [...bookmarks, app.id];
     setBookmarks(newBookmarks);
 
-    // Kirim request ke API
     await fetch('/api/bookmarks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
