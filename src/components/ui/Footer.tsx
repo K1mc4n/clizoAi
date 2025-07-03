@@ -2,12 +2,10 @@
 
 'use client';
 
-// Hanya ikon yang relevan yang diimpor: Home dan Star (untuk Bookmarks)
 import { Home, Star, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-// Tipe Tab disederhanakan menjadi hanya home dan bookmarks
 export type Tab = 'home' | 'bookmarks';
 
 interface FooterItemProps {
@@ -32,12 +30,12 @@ const FooterItem = ({ href, icon: Icon, label, isActive }: FooterItemProps) => (
   </Link>
 );
 
-export function Footer() { // Prop 'showWallet' telah dihapus
+export function Footer() {
   const pathname = usePathname();
 
   const getActiveTab = (): Tab => {
     if (pathname.startsWith('/bookmarks')) return 'bookmarks';
-    // Semua halaman lain, termasuk '/', akan dianggap 'home'
+    // Semua halaman lain, termasuk /app, akan dianggap 'home'
     return 'home';
   };
 
@@ -46,8 +44,8 @@ export function Footer() { // Prop 'showWallet' telah dihapus
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
       <div className="flex justify-around max-w-lg mx-auto px-2">
-        {/* Hanya ada dua tombol navigasi */}
-        <FooterItem href="/" icon={Home} label="Home" isActive={activeTab === 'home'} />
+        {/* PERBAIKAN DI SINI: href diubah menjadi "/app" */}
+        <FooterItem href="/app" icon={Home} label="Home" isActive={activeTab === 'home'} />
         <FooterItem href="/bookmarks" icon={Star} label="Bookmarks" isActive={activeTab === 'bookmarks'} />
       </div>
     </footer>
