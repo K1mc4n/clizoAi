@@ -1,7 +1,8 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, Configuration, User } from '@neynar/nodejs-sdk';
+// PERBAIKAN: Hapus impor 'User' yang tidak ada
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -30,7 +31,8 @@ export async function POST(request: NextRequest) {
         username: cleanedQuery 
       });
 
-      const user: User | undefined = userLookup.user || userLookup.result?.user;
+      // PERBAIKAN: Biarkan TypeScript menyimpulkan tipe data 'user'
+      const user = userLookup.user || userLookup.result?.user;
       
       if (!user) {
         throw new Error(`User @${cleanedQuery} not found via Neynar.`);
@@ -45,13 +47,11 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
 
-    // PERBAIKAN: Menggunakan URL API Degen yang baru dan lebih andal
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
     const degenResponse = await fetch(degenApiUrl);
 
     console.log(`[Degen API] Response status: ${degenResponse.status}`);
 
-    // Cek tipe konten sebelum mencoba parsing JSON
     const contentType = degenResponse.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
         console.error(`[Degen API] Unexpected content type: ${contentType}`);
@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
     
     const degenData = await degenResponse.json();
     
-    // Endpoint baru ini langsung mengembalikan objek, bukan array
     if (!degenData || typeof degenData.totalPoints === 'undefined') {
       console.log(`[Degen API] No points data found for address: ${targetAddress}`);
       return NextResponse.json({ error: `No Degen points data found for this address. They may not be eligible.` }, { status: 404 });
