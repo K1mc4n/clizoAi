@@ -70,8 +70,8 @@ export default function Demo({ title }: { title?: string }) {
         <h1 className="text-2xl font-bold text-center mb-1">{title}</h1>
         <p className="text-center text-gray-500 mb-6">A curated directory of Farcaster Mini Apps.</p>
         
-        {/* --- PERUBAHAN TATA LETAK DI SINI --- */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
+        {/* --- PERUBAHAN TATA LETAK GRID DI SINI --- */}
+        <div className="grid grid-cols-4 gap-2 animate-fade-in">
           {miniAppsData.map((app) => (
             <MiniAppCard
               key={app.id}
