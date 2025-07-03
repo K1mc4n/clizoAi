@@ -1,5 +1,9 @@
 // src/components/ui/NewsArticleCard.tsx
 
+// 1. Impor komponen ShareButton
+import { ShareButton } from './Share';
+import { APP_NAME } from '~/lib/constants';
+
 export interface Article {
   source: {
     id: string | null;
@@ -25,36 +29,49 @@ export const NewsArticleCard = ({ article }: NewsArticleCardProps) => {
     day: 'numeric',
   });
 
+  // 2. Siapkan konfigurasi untuk cast yang akan dibagikan
+  const castConfig = {
+    text: `Interesting read: "${article.title}"\n\nShared from ${APP_NAME}.`,
+    embeds: [{ url: article.url }], // Menyematkan URL artikel berita
+  };
+
   return (
-    <a 
-      href={article.url} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className="block w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden my-4 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
-    >
-      {article.urlToImage && (
-        <img 
-          src={article.urlToImage} 
-          alt={article.title} 
-          className="w-full h-40 object-cover"
-          // Fallback jika gambar gagal dimuat
-          onError={(e) => (e.currentTarget.style.display = 'none')}
-        />
-      )}
+    // Kita ubah dari <a> menjadi <div> agar tombol share bisa berfungsi dengan baik di dalamnya
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden my-4 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+      <a href={article.url} target="_blank" rel="noopener noreferrer">
+        {article.urlToImage && (
+          <img 
+            src={article.urlToImage} 
+            alt={article.title} 
+            className="w-full h-40 object-cover"
+            onError={(e) => (e.currentTarget.style.display = 'none')}
+          />
+        )}
+      </a>
       <div className="p-4">
         <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase">
           {article.source.name}
         </div>
-        <h3 className="mt-1 text-lg font-bold text-gray-900 dark:text-white leading-tight">
-          {article.title}
-        </h3>
+        <a href={article.url} target="_blank" rel="noopener noreferrer">
+          <h3 className="mt-1 text-lg font-bold text-gray-900 dark:text-white leading-tight hover:underline">
+            {article.title}
+          </h3>
+        </a>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           {article.description}
         </p>
-        <p className="mt-3 text-xs text-gray-500">
-          {formattedDate}
-        </p>
+        <div className="mt-4 flex justify-between items-center">
+          <p className="text-xs text-gray-500">
+            {formattedDate}
+          </p>
+          {/* 3. Tambahkan tombol ShareButton di sini */}
+          <ShareButton 
+            buttonText="Share"
+            cast={castConfig}
+            className="px-3 py-1 h-auto text-sm" // Membuat tombol lebih kecil
+          />
+        </div>
       </div>
-    </a>
+    </div>
   );
 };
