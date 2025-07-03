@@ -1,7 +1,6 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-// PERBAIKAN: Hapus impor 'User' yang tidak ada
 import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 function isEthereumAddress(address: string): boolean {
@@ -31,7 +30,6 @@ export async function POST(request: NextRequest) {
         username: cleanedQuery 
       });
 
-      // PERBAIKAN: Biarkan TypeScript menyimpulkan tipe data 'user'
       const user = userLookup.user || userLookup.result?.user;
       
       if (!user) {
@@ -48,13 +46,22 @@ export async function POST(request: NextRequest) {
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
 
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
-    const degenResponse = await fetch(degenApiUrl);
+    
+    // --- PERBAIKAN UTAMA DI SINI ---
+    // Menambahkan headers agar permintaan kita terlihat seperti browser sungguhan
+    const degenResponse = await fetch(degenApiUrl, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
+        }
+    });
+    // --------------------------------
 
     console.log(`[Degen API] Response status: ${degenResponse.status}`);
 
     const contentType = degenResponse.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-        console.error(`[Degen API] Unexpected content type: ${contentType}`);
+        const responseText = await degenResponse.text();
+        console.error(`[Degen API] Unexpected content type: ${contentType}. Body: ${responseText}`);
         return NextResponse.json({ error: `Received an invalid response from Degen API.` }, { status: 502 });
     }
 
@@ -76,12 +83,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('[DEGEN API CATCH BLOCK] Full Error:', JSON.stringify(error, null, 2));
-
-    let errorMessage = "An internal error occurred. Please try again later.";
-    if (error.message) {
-      errorMessage = `An error occurred: ${error.message}`;
-    }
-
+    const errorMessage = error.message ? `An error occurred: ${error.message}` : "An internal error occurred. Please try again later.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
