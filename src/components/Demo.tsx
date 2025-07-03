@@ -70,7 +70,6 @@ export default function Demo({ title }: { title?: string }) {
         <h1 className="text-2xl font-bold text-center mb-1">{title}</h1>
         <p className="text-center text-gray-500 mb-6">A curated directory of Farcaster Mini Apps.</p>
         
-        {/* --- PERUBAHAN TATA LETAK GRID DI SINI --- */}
         <div className="grid grid-cols-4 gap-2 animate-fade-in">
           {miniAppsData.map((app) => (
             <MiniAppCard
@@ -84,7 +83,8 @@ export default function Demo({ title }: { title?: string }) {
           ))}
         </div>
       </div>
-      <Footer showWallet={USE_WALLET} />
+      {/* Memanggil Footer tanpa prop */}
+      <Footer />
     </div>
   );
 }
