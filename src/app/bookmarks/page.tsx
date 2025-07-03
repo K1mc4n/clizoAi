@@ -3,8 +3,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
+// PERBAIKAN: Gunakan 'actions' dari useMiniApp
 import { useMiniApp } from '@neynar/react';
-import sdk from "@farcaster/frame-sdk";
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
 import { MiniAppCard } from '~/components/ui/MiniAppCard';
@@ -13,7 +13,8 @@ import { USE_WALLET } from '~/lib/constants';
 import Link from 'next/link';
 
 export default function BookmarksPage() {
-  const { context } = useMiniApp();
+  // PERBAIKAN: Destrukturisasi 'actions' dari useMiniApp
+  const { context, actions } = useMiniApp();
   const [bookmarkedApps, setBookmarkedApps] = useState<MiniApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +46,9 @@ export default function BookmarksPage() {
   }, [userFid]);
   
   const handleLaunchApp = (url: string) => {
-    if (context) {
-      sdk.openFrame({ url });
+    // PERBAIKAN: Gunakan 'actions.openFrame'
+    if (context && actions.openFrame) {
+      actions.openFrame(url);
     } else {
       window.open(url, '_blank');
     }
@@ -58,7 +60,6 @@ export default function BookmarksPage() {
     }
   }, [context?.user, fetchBookmarkedApps]);
 
-  // Sisanya sama seperti kode sebelumnya...
   if (!userFid) {
     return (
       <div style={{ paddingTop: context?.client.safeAreaInsets?.top ?? 0 }}>
@@ -93,9 +94,8 @@ export default function BookmarksPage() {
                               key={app.id} 
                               app={app} 
                               onLaunch={handleLaunchApp}
-                              // Di halaman bookmark, kita bisa anggap semua sudah di-bookmark
                               isBookmarked={true}
-                              onToggleBookmark={() => { /* opsional: bisa refresh list */ }}
+                              onToggleBookmark={() => fetchBookmarkedApps()} // Refresh list on toggle
                               isLoggedIn={!!userFid}
                             />
                         ))
