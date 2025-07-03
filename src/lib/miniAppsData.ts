@@ -1,7 +1,7 @@
 // src/lib/miniAppsData.ts
 
 export interface MiniApp {
-  id: string;
+  id: string; // ID unik untuk setiap aplikasi, digunakan untuk bookmark
   name: string;
   description: string;
   iconUrl: string;
@@ -9,10 +9,10 @@ export interface MiniApp {
   tags: string[];
 }
 
-// Ini adalah daftar aplikasi Anda. Anda bisa menambah, mengubah, atau menghapus isinya.
+// Daftar aplikasi Anda, termasuk yang baru ditambahkan.
 export const miniAppsData: MiniApp[] = [
   {
-    id: 'buidl',
+    id: 'buidl-app', // ID harus unik
     name: 'Buidl',
     description: 'Invest in your favorite Farcaster builders and earn rewards.',
     iconUrl: 'https://i.imgur.com/g91e5y5.jpeg',
@@ -20,7 +20,7 @@ export const miniAppsData: MiniApp[] = [
     tags: ['SocialFi', 'Investing'],
   },
   {
-    id: 'fantasy-top',
+    id: 'fantasy-top-app',
     name: 'Fantasy Top',
     description: 'The crypto fantasy game for Crypto Twitter influencers on Blast.',
     iconUrl: 'https://d31h136f621G5c.cloudfront.net/images/games/fantasy-top.png',
@@ -28,7 +28,7 @@ export const miniAppsData: MiniApp[] = [
     tags: ['GameFi', 'Social'],
   },
   {
-    id: 'unlonely',
+    id: 'unlonely-app',
     name: 'Unlonely',
     description: 'A Web3 streaming platform with interactive and token-gated features.',
     iconUrl: 'https://i.seadn.io/s/raw/files/dd483ada345157442a1215448744b63e.png?auto=format&dpr=1&w=1000',
@@ -36,11 +36,29 @@ export const miniAppsData: MiniApp[] = [
     tags: ['Streaming', 'Video'],
   },
   {
-    id: 'base-paint',
+    id: 'base-paint-app',
     name: 'Base Paint',
     description: 'A collaborative on-chain pixel art canvas on the Base network.',
     iconUrl: 'https://pbs.twimg.com/profile_images/1762193278855909376/xR3i51Vn_400x400.jpg',
     url: 'https://basepaint.xyz/',
     tags: ['Art', 'On-chain'],
   },
+  // --- APLIKASI BARU YANG DITAMBAHKAN ---
+  {
+    id: 'bountycaster-app',
+    name: 'Bountycaster',
+    description: 'A platform for creating and discovering bounties on Farcaster.',
+    iconUrl: 'https://pbs.twimg.com/profile_images/1744576352937000960/YvY2D29e_400x400.jpg',
+    url: 'https://www.bountycaster.xyz/',
+    tags: ['Bounties', 'Gigs', 'Web3'],
+  },
+  {
+    id: 'perl-app',
+    name: 'Perl',
+    description: 'A peer-to-peer prediction market on Farcaster.',
+    iconUrl: 'https://i.imgur.com/vHqj5jY.png',
+    url: 'https://perl.xyz/',
+    tags: ['Predictions', 'SocialFi', 'Betting'],
+  },
+  // ------------------------------------
 ];
