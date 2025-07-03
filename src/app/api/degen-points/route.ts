@@ -28,11 +28,13 @@ export async function POST(request: NextRequest) {
       
       const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
       
-      // Langkah 1: Cari pengguna berdasarkan username untuk mendapatkan FID mereka
-      const userLookup = await neynarClient.lookupUserByUsername(query.replace('@', ''));
+      // PERBAIKAN FINAL: Kirim username sebagai objek
+      const userLookup = await neynarClient.lookupUserByUsername({ 
+        username: query.replace('@', '') 
+      });
+
       const fid = userLookup.result.user.fid;
 
-      // Langkah 2: Gunakan FID untuk mendapatkan detail pengguna lengkap, termasuk custody_address
       const { users } = await neynarClient.fetchBulkUsers([fid]);
       const user = users[0];
 
@@ -40,7 +42,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Farcaster user @${query} not found.` }, { status: 404 });
       }
 
-      // Ambil custody_address
       const custodyAddress = user.custody_address;
       if (!custodyAddress) {
         return NextResponse.json({ error: `Could not find a connected wallet for user @${query}.` }, { status: 404 });
@@ -48,7 +49,6 @@ export async function POST(request: NextRequest) {
       targetAddress = custodyAddress;
     }
 
-    // Setelah mendapatkan alamat, panggil API Degen.tips
     const degenApiUrl = `https://www.degen.tips/api/airdrop2/season3/points?address=${targetAddress}`;
     const degenResponse = await fetch(degenApiUrl);
 
@@ -66,8 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(degenData);
 
   } catch (error: any) {
-    // Penanganan error yang lebih baik untuk user not found
-    if (error.response && error.response.data && error.response.data.message === 'User not found!') {
+    if (error.response && error.response.data && error.response.data.message.includes('User not found')) {
         return NextResponse.json({ error: `Farcaster user "${query}" not found.` }, { status: 404 });
     }
     console.error('Error in /api/degen-points:', error.message);
