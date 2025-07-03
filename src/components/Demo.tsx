@@ -3,7 +3,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// PERBAIKAN: Impor 'actions' dari useMiniApp
 import { useMiniApp } from "@neynar/react";
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
@@ -12,7 +11,6 @@ import { miniAppsData, type MiniApp } from "~/lib/miniAppsData";
 import { MiniAppCard } from "./ui/MiniAppCard";
 
 export default function Demo({ title }: { title?: string }) {
-  // PERBAIKAN: Destrukturisasi 'actions' dari useMiniApp
   const { isSDKLoaded, context, actions } = useMiniApp();
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const userFid = context?.user?.fid;
@@ -34,9 +32,9 @@ export default function Demo({ title }: { title?: string }) {
   }, [userFid]);
 
   const handleLaunchApp = (url: string) => {
-    // PERBAIKAN: Gunakan 'actions.openFrame'
-    if (isSDKLoaded && actions.openFrame) {
-      actions.openFrame(url);
+    // PERBAIKAN: Gunakan 'actions.openUrl'
+    if (isSDKLoaded && actions.openUrl) {
+      actions.openUrl(url);
     } else {
       window.open(url, '_blank');
     }
