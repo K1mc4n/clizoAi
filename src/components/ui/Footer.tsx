@@ -2,12 +2,10 @@
 
 'use client';
 
-// Hapus CircleDollarSign
 import { Home, Newspaper, BarChart3, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-// Hapus 'degen' dari tipe Tab
 export type Tab = 'home' | 'news' | 'leaderboard';
 
 interface FooterItemProps {
@@ -17,8 +15,20 @@ interface FooterItemProps {
   isActive: boolean;
 }
 
+// PERBAIKAN DI SINI: Pastikan komponen ini berisi kode JSX yang benar
 const FooterItem = ({ href, icon: Icon, label, isActive }: FooterItemProps) => (
-    // ... (tidak ada perubahan di sini)
+  <Link href={href} className="flex-1">
+    <div
+      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
+        isActive
+          ? 'text-blue-500 bg-blue-50 dark:bg-gray-700'
+          : 'text-gray-500 hover:text-blue-500'
+      }`}
+    >
+      <Icon className="w-6 h-6 mb-1" />
+      <span className="text-xs font-medium">{label}</span>
+    </div>
+  </Link>
 );
 
 export function Footer() {
@@ -26,7 +36,6 @@ export function Footer() {
 
   const getActiveTab = (): Tab => {
     if (pathname.startsWith('/news')) return 'news';
-    // Hapus baris degen-checker
     if (pathname.startsWith('/leaderboard')) return 'leaderboard';
     return 'home';
   };
@@ -38,7 +47,6 @@ export function Footer() {
       <div className="flex justify-around max-w-lg mx-auto px-2">
         <FooterItem href="/app" icon={Home} label="Home" isActive={activeTab === 'home'} />
         <FooterItem href="/leaderboard" icon={BarChart3} label="Board" isActive={activeTab === 'leaderboard'} />
-        {/* Hapus item Degen */}
         <FooterItem href="/news" icon={Newspaper} label="News" isActive={activeTab === 'news'} />
       </div>
     </footer>
