@@ -1,8 +1,9 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+// --- PERBAIKAN DI SINI ---
+// Menggabungkan impor NeynarAPIClient dan User ke dalam satu baris dari path utama.
+import { NeynarAPIClient, User } from '@neynar/nodejs-sdk';
 
 // Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const { result } = await neynarClient.lookupUserByUsername(fname);
+        // Tipe User sekarang sudah benar dari impor yang diperbaiki
         const user: User | undefined = result?.user;
 
         if (!user) {
