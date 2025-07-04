@@ -1,8 +1,8 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
-// Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
@@ -11,22 +11,63 @@ export async function POST(request: NextRequest) {
   const { query } = await request.json();
 
   if (!query || typeof query !== 'string') {
-    return NextResponse.json({ error: 'Input is required.' }, { status: 400 });
+    return NextResponse.json({ error: 'A Farcaster username or Ethereum address is required.' }, { status: 400 });
   }
 
   let targetAddress: string | null = null;
-  const cleanedQuery = query.trim().replace('@', '');
-
-  // Jika input BUKAN alamat, kita kembalikan error.
-  // Ini untuk sementara menonaktifkan pencarian via Neynar agar build berhasil.
-  if (!isEthereumAddress(cleanedQuery)) {
-    return NextResponse.json({ error: 'For now, please enter an ETH address directly (e.g., 0x...). Username lookup is temporarily disabled.' }, { status: 400 });
-  }
-  
-  targetAddress = cleanedQuery;
+  let cleanedQuery = query.trim().replace('@', '');
 
   try {
-    // Bagian Degen.tips tidak berubah
+    if (isEthereumAddress(cleanedQuery)) {
+      targetAddress = cleanedQuery;
+    } 
+    else {
+      const neynarApiKey = process.env.NEYNAR_API_KEY;
+      if (!neynarApiKey) {
+        throw new Error('Neynar API key is not configured on the server.');
+      }
+      
+      const neynarClient = new NeynarAPIClient(neynarApiKey);
+      
+      const fname = cleanedQuery.endsWith('.eth') 
+        ? cleanedQuery.slice(0, -4) 
+        : cleanedQuery;
+
+      console.log(`[Neynar API] Looking up username: ${fname}`);
+
+      try {
+        // =========================================================
+        // PERBAIKAN FOKUS DI SINI
+        // Membungkus 'fname' dalam objek sesuai pesan error.
+        // =========================================================
+        const data = await neynarClient.lookupUserByUsername(fname); // Ini baris yang salah sebelumnya
+        const user = data.result.user;
+
+        if (!user) {
+          throw new Error(`User @${fname} not found on Farcaster.`);
+        }
+        
+        const custodyAddress = user.custody_address;
+        const verifiedAddress = user.verified_addresses?.eth_addresses?.[0];
+
+        if (custodyAddress) {
+            targetAddress = custodyAddress;
+        } else if (verifiedAddress) {
+            targetAddress = verifiedAddress;
+        } else {
+            return NextResponse.json({ error: `Could not find a connected wallet for user @${fname}.` }, { status: 404 });
+        }
+
+      } catch (neynarError: any) {
+        console.error('[Neynar API Error]', neynarError);
+        if (neynarError?.response?.status === 404) {
+          return NextResponse.json({ error: `Farcaster user "${fname}" not found.` }, { status: 404 });
+        }
+        throw new Error('Failed to fetch user data from Farcaster. Please try again.');
+      }
+    }
+
+    // Bagian Degen.tips tidak berubah dan sudah benar
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
     
@@ -50,6 +91,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('[DEGEN API CATCH BLOCK] Full Error:', error.message);
-    return NextResponse.json({ error: "An internal server error occurred." }, { status: 500 });
+    return NextResponse.json({ error: error.message || "An internal server error occurred." }, { status: 500 });
   }
 }
