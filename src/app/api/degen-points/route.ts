@@ -1,8 +1,10 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
+// Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
@@ -15,75 +17,86 @@ export async function POST(request: NextRequest) {
   }
 
   let targetAddress: string | null = null;
-  const cleanedQuery = query.replace('@', '');
+  // Membersihkan input dari spasi dan simbol @
+  let cleanedQuery = query.trim().replace('@', '');
 
   try {
+    // === BLOK 1: CEK JIKA INPUT ADALAH ALAMAT DOMPET ===
     if (isEthereumAddress(cleanedQuery)) {
       targetAddress = cleanedQuery;
-    } else {
+    } 
+    // === BLOK 2: JIKA INPUT ADALAH NAMA PENGGUNA, GUNAKAN NEYNAR ===
+    else {
       const neynarApiKey = process.env.NEYNAR_API_KEY;
-      if (!neynarApiKey) throw new Error('Neynar API key is not configured.');
-      
-      const neynarClient = new NeynarAPIClient(new Configuration({ apiKey: neynarApiKey }));
-      
-      const userLookup: any = await neynarClient.lookupUserByUsername({ 
-        username: cleanedQuery 
-      });
-
-      const user = userLookup.user || userLookup.result?.user;
-      
-      if (!user) {
-        throw new Error(`User @${cleanedQuery} not found via Neynar.`);
+      if (!neynarApiKey) {
+        throw new Error('Neynar API key is not configured on the server.');
       }
+      
+      const neynarClient = new NeynarAPIClient(neynarApiKey);
+      
+      // Membersihkan .eth dari nama pengguna untuk memastikan kompatibilitas
+      const fname = cleanedQuery.endsWith('.eth') 
+        ? cleanedQuery.slice(0, -4) 
+        : cleanedQuery;
 
-      const custodyAddress = user.custody_address;
-      if (!custodyAddress) {
-        return NextResponse.json({ error: `Could not find a connected wallet for user @${cleanedQuery}.` }, { status: 404 });
+      console.log(`[Neynar API] Looking up username: ${fname}`);
+
+      try {
+        const { result } = await neynarClient.lookupUserByUsername(fname);
+        const user: User | undefined = result?.user;
+
+        if (!user) {
+          throw new Error(`User @${fname} not found on Farcaster.`);
+        }
+        
+        // Prioritaskan custody_address, jika tidak ada, gunakan dompet terverifikasi pertama
+        const custodyAddress = user.custody_address;
+        const verifiedAddress = user.verified_addresses?.eth_addresses?.[0];
+
+        if (custodyAddress) {
+            targetAddress = custodyAddress;
+        } else if (verifiedAddress) {
+            targetAddress = verifiedAddress;
+        } else {
+            return NextResponse.json({ error: `Could not find a connected wallet for user @${fname}.` }, { status: 404 });
+        }
+
+      } catch (neynarError: any) {
+        // Menangani error spesifik jika Neynar tidak menemukan pengguna
+        console.error('[Neynar API Error]', neynarError);
+        if (neynarError?.response?.status === 404) {
+          return NextResponse.json({ error: `Farcaster user "${fname}" not found.` }, { status: 404 });
+        }
+        // Untuk error lain dari Neynar
+        throw new Error('Failed to fetch user data from Farcaster. Please try again.');
       }
-      targetAddress = custodyAddress;
     }
 
+    // === BLOK 3: SETELAH DAPAT ALAMAT DOMPET, PANGGIL DEGEN.TIPS API ===
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
-
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
     
-    // --- PERBAIKAN UTAMA DI SINI ---
-    // Menambahkan headers agar permintaan kita terlihat seperti browser sungguhan
     const degenResponse = await fetch(degenApiUrl, {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
         }
     });
-    // --------------------------------
-
-    console.log(`[Degen API] Response status: ${degenResponse.status}`);
-
-    const contentType = degenResponse.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        const responseText = await degenResponse.text();
-        console.error(`[Degen API] Unexpected content type: ${contentType}. Body: ${responseText}`);
-        return NextResponse.json({ error: `Received an invalid response from Degen API.` }, { status: 502 });
-    }
 
     if (!degenResponse.ok) {
-        const errorData = await degenResponse.json();
-        const errorMessage = errorData.error || `Degen API returned an error (Status: ${degenResponse.status}).`;
-        console.error(`[Degen API] Error response:`, errorData);
-        return NextResponse.json({ error: errorMessage }, { status: 502 });
+        return NextResponse.json({ error: `Could not retrieve Degen points. The user may not be eligible.` }, { status: degenResponse.status });
     }
     
     const degenData = await degenResponse.json();
     
     if (!degenData || typeof degenData.totalPoints === 'undefined') {
-      console.log(`[Degen API] No points data found for address: ${targetAddress}`);
-      return NextResponse.json({ error: `No Degen points data found for this address. They may not be eligible.` }, { status: 404 });
+      return NextResponse.json({ error: `No Degen points data found for this address.` }, { status: 404 });
     }
 
     return NextResponse.json(degenData);
 
   } catch (error: any) {
-    console.error('[DEGEN API CATCH BLOCK] Full Error:', JSON.stringify(error, null, 2));
-    const errorMessage = error.message ? `An error occurred: ${error.message}` : "An internal error occurred. Please try again later.";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // Menangkap semua error lain yang mungkin terjadi
+    console.error('[DEGEN API CATCH BLOCK] Full Error:', error.message);
+    return NextResponse.json({ error: error.message || "An internal server error occurred." }, { status: 500 });
   }
 }
