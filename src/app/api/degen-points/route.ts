@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 // --- PERBAIKAN DI SINI ---
-// Menggabungkan impor NeynarAPIClient dan User ke dalam satu baris dari path utama.
-import { NeynarAPIClient, User } from '@neynar/nodejs-sdk';
+// Kita hanya butuh NeynarAPIClient. Tipe 'User' tidak diekspor, jadi kita akan menghapusnya.
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
 // Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
@@ -18,15 +18,12 @@ export async function POST(request: NextRequest) {
   }
 
   let targetAddress: string | null = null;
-  // Membersihkan input dari spasi dan simbol @
   let cleanedQuery = query.trim().replace('@', '');
 
   try {
-    // === BLOK 1: CEK JIKA INPUT ADALAH ALAMAT DOMPET ===
     if (isEthereumAddress(cleanedQuery)) {
       targetAddress = cleanedQuery;
     } 
-    // === BLOK 2: JIKA INPUT ADALAH NAMA PENGGUNA, GUNAKAN NEYNAR ===
     else {
       const neynarApiKey = process.env.NEYNAR_API_KEY;
       if (!neynarApiKey) {
@@ -34,8 +31,6 @@ export async function POST(request: NextRequest) {
       }
       
       const neynarClient = new NeynarAPIClient(neynarApiKey);
-      
-      // Membersihkan .eth dari nama pengguna untuk memastikan kompatibilitas
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
         : cleanedQuery;
@@ -44,14 +39,16 @@ export async function POST(request: NextRequest) {
 
       try {
         const { result } = await neynarClient.lookupUserByUsername(fname);
-        // Tipe User sekarang sudah benar dari impor yang diperbaiki
-        const user: User | undefined = result?.user;
+        
+        // --- PERBAIKAN DI SINI ---
+        // Memberi tipe 'any' pada user. Ini akan menyelesaikan error kompilasi
+        // karena kita tidak lagi mencoba mengimpor tipe 'User' yang tidak ada.
+        const user: any = result?.user;
 
         if (!user) {
           throw new Error(`User @${fname} not found on Farcaster.`);
         }
         
-        // Prioritaskan custody_address, jika tidak ada, gunakan dompet terverifikasi pertama
         const custodyAddress = user.custody_address;
         const verifiedAddress = user.verified_addresses?.eth_addresses?.[0];
 
@@ -64,17 +61,14 @@ export async function POST(request: NextRequest) {
         }
 
       } catch (neynarError: any) {
-        // Menangani error spesifik jika Neynar tidak menemukan pengguna
         console.error('[Neynar API Error]', neynarError);
         if (neynarError?.response?.status === 404) {
           return NextResponse.json({ error: `Farcaster user "${fname}" not found.` }, { status: 404 });
         }
-        // Untuk error lain dari Neynar
         throw new Error('Failed to fetch user data from Farcaster. Please try again.');
       }
     }
 
-    // === BLOK 3: SETELAH DAPAT ALAMAT DOMPET, PANGGIL DEGEN.TIPS API ===
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
     
@@ -97,7 +91,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(degenData);
 
   } catch (error: any) {
-    // Menangkap semua error lain yang mungkin terjadi
     console.error('[DEGEN API CATCH BLOCK] Full Error:', error.message);
     return NextResponse.json({ error: error.message || "An internal server error occurred." }, { status: 500 });
   }
