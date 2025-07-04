@@ -27,12 +27,9 @@ export async function POST(request: NextRequest) {
         throw new Error('Neynar API key is not configured on the server.');
       }
       
-      // =========================================================
-      // PERBAIKAN 1: Cara membuat client yang benar
       const neynarClient = new NeynarAPIClient(
         new Configuration({ apiKey: neynarApiKey })
       );
-      // =========================================================
       
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
@@ -42,8 +39,11 @@ export async function POST(request: NextRequest) {
 
       try {
         // =========================================================
-        // PERBAIKAN 2: Cara mengambil user yang benar dari respons
-        const { user } = await neynarClient.lookupUserByUsername(fname);
+        // PERBAIKAN FINAL: Kirim 'fname' di dalam objek
+        // =========================================================
+        const { user } = await neynarClient.lookupUserByUsername({ 
+          username: fname 
+        });
 
         if (!user) {
           throw new Error(`User @${fname} not found on Farcaster.`);
