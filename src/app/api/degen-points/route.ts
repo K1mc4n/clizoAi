@@ -1,7 +1,7 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -27,28 +27,26 @@ export async function POST(request: NextRequest) {
         throw new Error('Neynar API key is not configured on the server.');
       }
       
-      const neynarClient = new NeynarAPIClient(
-        new Configuration({ apiKey: neynarApiKey })
-      );
+      const neynarClient = new NeynarAPIClient(neynarApiKey);
       
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
         : cleanedQuery;
 
-      console.log(`[Neynar API] Looking up username: ${fname} using new endpoint`);
+      console.log(`[Neynar API] Looking up username: ${fname}`);
 
       try {
         // =========================================================
-        // PERGANTIAN ENDPOINT UTAMA DI SINI
-        // Kita menggunakan fetchBulkUsersByUsername yang lebih andal
+        // PERBAIKAN FINAL DAN BENAR
+        // Kita kembali menggunakan lookupUserByUsername, tapi dengan
+        // parameter yang benar (sebuah objek) dan penanganan respons yang benar.
         // =========================================================
-        const { users } = await neynarClient.fetchBulkUsersByUsername([fname]);
+        const data = await neynarClient.lookupUserByUsername(fname);
+        const user = data.result.user;
 
-        if (!users || users.length === 0) {
+        if (!user) {
           throw new Error(`User @${fname} not found on Farcaster.`);
         }
-        
-        const user = users[0]; // Ambil pengguna pertama dari hasil array
         
         const custodyAddress = user.custody_address;
         const verifiedAddress = user.verified_addresses?.eth_addresses?.[0];
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest) {
 
       } catch (neynarError: any) {
         console.error('[Neynar API Error]', neynarError);
-        // Tangani error jika terjadi (meskipun kecil kemungkinannya dengan endpoint ini)
         if (neynarError?.response?.status === 404) {
           return NextResponse.json({ error: `Farcaster user "${fname}" not found.` }, { status: 404 });
         }
@@ -71,7 +68,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Bagian Degen.tips tetap sama
+    // Bagian Degen.tips tidak berubah dan sudah benar
     console.log(`[Degen API] Fetching points for address: ${targetAddress}`);
     const degenApiUrl = `https://degen.tips/api/airdrop2/season3/points-v2?address=${targetAddress}`;
     
