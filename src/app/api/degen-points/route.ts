@@ -1,8 +1,7 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-// PERBAIKAN: Impor NeynarAPIClient DAN Configuration
-import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -28,11 +27,7 @@ export async function POST(request: NextRequest) {
         throw new Error('Neynar API key is not configured on the server.');
       }
       
-      // INI ADALAH CARA YANG BENAR UNTUK MEMBUAT CLIENT
-      // Membungkus API key dalam objek Configuration baru.
-      const neynarClient = new NeynarAPIClient(
-        new Configuration({ apiKey: neynarApiKey })
-      );
+      const neynarClient = new NeynarAPIClient(neynarApiKey);
       
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
@@ -41,10 +36,16 @@ export async function POST(request: NextRequest) {
       console.log(`[Neynar API] Looking up username: ${fname}`);
 
       try {
-        const { result } = await neynarClient.lookupUserByUsername(fname);
-        const user: any = result?.user;
+        // =========================================================
+        // PERBAIKAN UTAMA DAN FINAL DI SINI
+        // =========================================================
+        // Respons dari lookupUserByUsername langsung berisi properti 'user'.
+        // Tidak ada lagi objek 'result' yang membungkusnya.
+        const { user } = await neynarClient.lookupUserByUsername(fname);
 
         if (!user) {
+          // Kondisi ini seharusnya tidak pernah tercapai jika lookup gagal,
+          // karena akan melempar error, tapi ini sebagai pengaman.
           throw new Error(`User @${fname} not found on Farcaster.`);
         }
         
