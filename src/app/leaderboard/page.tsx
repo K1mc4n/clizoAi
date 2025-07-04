@@ -55,13 +55,16 @@ export default function LeaderboardPage() {
       setError(null);
       try {
         const response = await fetch('/api/leaderboard');
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to fetch data');
-        }
         const data = await response.json();
+
+        if (!response.ok) {
+          // Menangkap pesan error dari API backend
+          throw new Error(data.error || 'Failed to fetch leaderboard data.');
+        }
+
         setLeaderboard(data.leaderboard || []);
       } catch (err: any) {
+        console.error("Error fetching leaderboard:", err.message);
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -93,7 +96,10 @@ export default function LeaderboardPage() {
             </tbody>
           </table>
           {!isLoading && error && (
-            <div className="text-center py-10 text-red-500">{error}</div>
+            <div className="text-center py-10 px-4 text-red-500">
+              <p className="font-bold">Could not load data.</p>
+              <p className="text-sm">{error}</p>
+            </div>
           )}
           {!isLoading && !error && leaderboard.length === 0 && (
             <div className="text-center py-10 text-gray-500">No data available.</div>
