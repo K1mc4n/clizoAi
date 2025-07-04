@@ -2,11 +2,13 @@
 
 'use client';
 
-import { Home, Newspaper, BarChart3, type LucideIcon } from 'lucide-react';
+// Hanya impor yang dibutuhkan
+import { Home, Newspaper, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export type Tab = 'home' | 'news' | 'leaderboard';
+// Hanya ada dua tab yang tersisa
+export type Tab = 'home' | 'news';
 
 interface FooterItemProps {
   href: string;
@@ -15,7 +17,6 @@ interface FooterItemProps {
   isActive: boolean;
 }
 
-// PERBAIKAN DI SINI: Pastikan komponen ini berisi kode JSX yang benar
 const FooterItem = ({ href, icon: Icon, label, isActive }: FooterItemProps) => (
   <Link href={href} className="flex-1">
     <div
@@ -36,7 +37,7 @@ export function Footer() {
 
   const getActiveTab = (): Tab => {
     if (pathname.startsWith('/news')) return 'news';
-    if (pathname.startsWith('/leaderboard')) return 'leaderboard';
+    // Hapus baris leaderboard
     return 'home';
   };
 
@@ -46,7 +47,7 @@ export function Footer() {
     <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
       <div className="flex justify-around max-w-lg mx-auto px-2">
         <FooterItem href="/app" icon={Home} label="Home" isActive={activeTab === 'home'} />
-        <FooterItem href="/leaderboard" icon={BarChart3} label="Board" isActive={activeTab === 'leaderboard'} />
+        {/* Hapus item Leaderboard */}
         <FooterItem href="/news" icon={Newspaper} label="News" isActive={activeTab === 'news'} />
       </div>
     </footer>
