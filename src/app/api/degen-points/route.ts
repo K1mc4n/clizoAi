@@ -1,9 +1,9 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-// --- PERBAIKAN DI SINI ---
-// Kita hanya butuh NeynarAPIClient. Tipe 'User' tidak diekspor, jadi kita akan menghapusnya.
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+// --- PERBAIKAN FINAL ---
+// Impor NeynarAPIClient DAN Configuration
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 // Fungsi untuk memeriksa apakah sebuah string adalah alamat Ethereum
 function isEthereumAddress(address: string): boolean {
@@ -30,7 +30,10 @@ export async function POST(request: NextRequest) {
         throw new Error('Neynar API key is not configured on the server.');
       }
       
+      // --- PERBAIKAN FINAL ---
+      // Bungkus API key dalam objek Configuration saat membuat client
       const neynarClient = new NeynarAPIClient(neynarApiKey);
+      
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
         : cleanedQuery;
@@ -39,10 +42,6 @@ export async function POST(request: NextRequest) {
 
       try {
         const { result } = await neynarClient.lookupUserByUsername(fname);
-        
-        // --- PERBAIKAN DI SINI ---
-        // Memberi tipe 'any' pada user. Ini akan menyelesaikan error kompilasi
-        // karena kita tidak lagi mencoba mengimpor tipe 'User' yang tidak ada.
         const user: any = result?.user;
 
         if (!user) {
