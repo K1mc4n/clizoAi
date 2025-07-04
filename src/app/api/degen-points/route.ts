@@ -1,7 +1,8 @@
 // src/app/api/degen-points/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+// PERBAIKAN: Impor NeynarAPIClient DAN Configuration
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 function isEthereumAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -27,8 +28,11 @@ export async function POST(request: NextRequest) {
         throw new Error('Neynar API key is not configured on the server.');
       }
       
-      // INI ADALAH CARA YANG BENAR
-      const neynarClient = new NeynarAPIClient(neynarApiKey);
+      // INI ADALAH CARA YANG BENAR UNTUK MEMBUAT CLIENT
+      // Membungkus API key dalam objek Configuration baru.
+      const neynarClient = new NeynarAPIClient(
+        new Configuration({ apiKey: neynarApiKey })
+      );
       
       const fname = cleanedQuery.endsWith('.eth') 
         ? cleanedQuery.slice(0, -4) 
