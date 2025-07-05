@@ -1,20 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
-    // Hanya terapkan pada build sisi klien (di browser)
-    if (!isServer) {
-      // Cari plugin Terser yang digunakan untuk minifikasi kode
-      const terserPlugin = config.optimization.minimizer.find(
-        (minimizer) => minimizer.constructor.name === 'TerserPlugin'
-      );
+    // Ini memberitahu webpack untuk TIDAK mencoba mem-parse file worker dari walletconnect.
+    // Ini adalah solusi langsung untuk error 'export' cannot be used outside of module code.
+    config.module.noParse = [
+      ...config.module.noParse || [],
+      /node_modules\/@walletconnect\/ethereum-provider\/dist\/esm\/HeartbeatWorker\.js/,
+    ];
 
-      // Jika TerserPlugin ditemukan, tambahkan pengecualian
-      if (terserPlugin) {
-        terserPlugin.options.exclude = /HeartbeatWorker/;
-      }
-    }
-
-    // Kembalikan konfigurasi yang sudah dimodifikasi
+    // Mengembalikan konfigurasi yang sudah dimodifikasi
     return config;
   },
 };
