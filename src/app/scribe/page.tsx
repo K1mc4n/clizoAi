@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMiniApp, type User } from '@neynar/react'; // <-- PERBAIKAN DI SINI
+// **PERBAIKAN 1: Hapus impor tipe 'User' atau 'MiniAppUser'**
+import { useMiniApp } from '@neynar/react'; 
 import { supabase } from '~/lib/supabase';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
@@ -11,8 +12,13 @@ import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { ImageUp, Link2, Loader2 } from 'lucide-react';
 
-// Komponen inti: Hanya di-render jika 'user' sudah pasti ada
-function ScribeForm({ user }: { user: User }) { // <-- PERBAIKAN DI SINI
+// **PERBAIKAN 2: Gunakan 'ReturnType' untuk menyimpulkan tipe secara otomatis**
+// Ini cara canggih untuk mendapatkan tipe 'user' tanpa perlu tahu namanya.
+type UserType = NonNullable<ReturnType<typeof useMiniApp>['context']>['user'];
+
+
+// Komponen inti: Sekarang menerima tipe 'UserType' yang kita simpulkan
+function ScribeForm({ user }: { user: UserType }) { 
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState(user.displayName || '');
   const [linkUrl, setLinkUrl] = useState('');
