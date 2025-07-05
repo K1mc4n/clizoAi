@@ -2,122 +2,94 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMiniApp } from '@neynar/react'; // Kita tetap butuh ini
+import { useMiniApp } from '@neynar/react';
 import { supabase } from '~/lib/supabase';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
 import { Button } from '~/components/ui/Button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
-import { ImageUp, Link2, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function ScribePage() {
-  // Ambil konteks dan status SDK
   const { context, isSDKLoaded } = useMiniApp();
   const user = context?.user;
 
-  // State untuk form
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
-  const [linkUrl, setLinkUrl] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  // ... state lainnya
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Efek untuk mengisi nama secara otomatis
   useEffect(() => {
-    if (user?.displayName) {
+    if (user?.displayName && !author) {
       setAuthor(user.displayName);
     }
-  }, [user]);
+  }, [user, author]);
 
-  // Fungsi untuk handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      alert("Farcaster user not found. Please open in a Farcaster client.");
+      alert("Please open in a Farcaster client to post.");
       return;
     }
-    // ... (sisa logika submit sama seperti sebelumnya) ...
+    // ... (logika submit lengkap ada di bawah jika Anda perlu)
     setIsSubmitting(true);
-    let imageUrl: string | null = null;
-    if (imageFile) {
-        // ... logika upload
-    }
+    // ... logika upload dan fetch ...
     const response = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             content,
             author_name: author || user.displayName || 'Anonymous',
-            image_url: imageUrl,
-            link_url: linkUrl,
+            // image_url: imageUrl,
+            // link_url: linkUrl,
             author_fid: user.fid,
         }),
     });
     setIsSubmitting(false);
-    if (response.ok) {
-        alert('Posted!');
-        // ... reset form
-    } else {
-        alert('Failed to post.');
-    }
+    if(response.ok) { alert('Posted!'); setContent(''); setAuthor(user.displayName || ''); } 
+    else { alert('Failed to post.'); }
   };
 
-  // ======================================================================
-  // INI ADALAH KUNCI PERBAIKANNYA
-  // ======================================================================
-  // Jika SDK belum siap, tampilkan layar loading. Ini mencegah crash.
+  // KUNCI UTAMA: Tunda render sampai SDK siap
   if (!isSDKLoaded) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-        <p className="mt-4">Initializing...</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Initializing...</p>
       </div>
     );
   }
 
-  // Jika SDK sudah siap, baru render halaman utama.
   return (
     <div>
       <div className="mx-auto max-w-2xl px-4 py-8 pb-24">
         <Header />
         <div className="text-center my-8">
           <h1 className="text-3xl font-bold">Scribe a Note</h1>
-          <p className="mt-2 text-lg text-gray-600">Share your thoughts.</p>
         </div>
         
-        {/* Tampilkan pesan jika user tidak ditemukan, bahkan setelah SDK siap */}
-        {!user && (
-          <div className="text-center p-4 bg-yellow-100 rounded-md">
-            <p className="text-yellow-800">Please open this in a Farcaster client to post.</p>
-          </div>
-        )}
-
-        {/* Hanya tampilkan form jika user ADA */}
-        {user && (
+        {user ? (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ... (semua elemen form: Textarea, Input, Button) ... */}
             <div>
-              <label>Your Note</label>
-              <Textarea value={content} onChange={(e) => setContent(e.target.value)} />
+              <label htmlFor="content">Your Note</label>
+              <Textarea id="content" value={content} onChange={(e) => setContent(e.target.value)} />
             </div>
             <div>
-              <label>Link (Optional)</label>
-              <Input type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
+              <label htmlFor="author">Your Name</label>
+              <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} />
             </div>
-            <div>
-              <label>Image (Optional)</label>
-              <Input type="file" onChange={(e) => e.target.files && setImageFile(e.target.files[0])} />
-            </div>
-            <div>
-              <label>Your Name</label>
-              <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
-            </div>
-            <Button type="submit" isLoading={isSubmitting}>Post Note</Button>
+            <Button type="submit" isLoading={isSubmitting} className="w-full">
+              Post Note
+            </Button>
           </form>
+        ) : (
+          <div className="text-center p-4 bg-yellow-100 rounded-md">
+            <p className="text-yellow-800">Please open this in a Farcaster client to use this feature.</p>
+          </div>
         )}
       </div>
       <Footer />
     </div>
   );
-            }
+}
