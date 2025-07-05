@@ -1,14 +1,15 @@
-// Lokasi: src/app/api/posts/route.ts
+// src/app/api/posts/route.ts
 
 import { NextResponse } from 'next/server';
-import { supabase } from '~/lib/supabase'; // Pastikan path ini benar
+import { supabase } from '~/lib/supabase';
 
-// Fungsi ini akan mengambil semua post dari database
+// FUNGSI UNTUK MENGAMBIL SEMUA POSTS (GET)
+// Tidak ada perubahan di sini
 export async function GET() {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
-    .order('created_at', { ascending: false }); // Urutkan dari yang terbaru
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching posts:', error);
@@ -17,17 +18,24 @@ export async function GET() {
   return NextResponse.json(data);
 }
 
-// Fungsi ini akan menyimpan post baru ke database
+// FUNGSI UNTUK MENYIMPAN POST BARU (POST)
+// Diperbarui untuk menerima image_url dan link_url
 export async function POST(request: Request) {
-  const { content, author_name } = await request.json();
+  const { content, author_name, image_url, link_url } = await request.json();
 
-  if (!content) {
-    return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+  // Post harus punya konten teks atau gambar
+  if (!content && !image_url) {
+    return NextResponse.json({ error: 'Content or an image is required' }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from('posts')
-    .insert([{ content, author_name: author_name || 'Anonymous' }])
+    .insert([{ 
+      content, 
+      author_name: author_name || 'Anonymous',
+      image_url, // Kolom baru
+      link_url   // Kolom baru
+    }])
     .select();
 
   if (error) {
