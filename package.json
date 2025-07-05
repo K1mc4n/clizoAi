@@ -9,15 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@farcaster/frame-core": ">=0.0.29 <1.0.0",
-    "@farcaster/frame-sdk": ">=0.0.31 <1.0.0",
-    "@farcaster/frame-wagmi-connector": ">=0.0.19 <1.0.0",
-    "@neynar/nodejs-sdk": "^2.19.0",
-    "@neynar/react": "^1.2.2",
+    "@farcaster/frame-core": "^0.3.4",
+    "@farcaster/frame-sdk": "^0.0.64",
+    "@farcaster/frame-wagmi-connector": "^0.0.53",
+    "@neynar/nodejs-sdk": "^2.46.0",
+    "@neynar/react": "^1.2.5",
     "@radix-ui/react-slot": "^1.2.3",
-    "@solana/wallet-adapter-react": "^0.15.38",
+    "@solana/wallet-adapter-react": "^0.15.39",
     "@supabase/supabase-js": "^2.50.2",
-    "@tanstack/react-query": "^5.61.0",
+    "@tanstack/react-query": "^5.81.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
@@ -25,9 +25,9 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.1",
-    "viem": "^2.23.6",
-    "wagmi": "^2.14.12",
-    "zod": "^3.24.2"
+    "viem": "2.31.7",
+    "wagmi": "2.15.6",
+    "zod": "^3.25.74"
   },
   "devDependencies": {
     "@types/node": "^20",
