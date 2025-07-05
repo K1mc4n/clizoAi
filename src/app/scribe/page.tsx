@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMiniApp, type MiniAppUser } from '@neynar/react'; // Impor tipe MiniAppUser
+import { useMiniApp, type User } from '@neynar/react'; // <-- PERBAIKAN DI SINI
 import { supabase } from '~/lib/supabase';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
@@ -11,10 +11,8 @@ import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { ImageUp, Link2, Loader2 } from 'lucide-react';
 
-// =========================================================================
-// KOMPONEN INTI: Hanya di-render jika 'user' sudah pasti ada
-// =========================================================================
-function ScribeForm({ user }: { user: MiniAppUser }) {
+// Komponen inti: Hanya di-render jika 'user' sudah pasti ada
+function ScribeForm({ user }: { user: User }) { // <-- PERBAIKAN DI SINI
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState(user.displayName || '');
   const [linkUrl, setLinkUrl] = useState('');
@@ -23,7 +21,6 @@ function ScribeForm({ user }: { user: MiniAppUser }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Selalu update nama jika profil pengguna berubah
     if (user.displayName && author !== user.displayName) {
       setAuthor(user.displayName);
     }
@@ -109,16 +106,12 @@ function ScribeForm({ user }: { user: MiniAppUser }) {
 }
 
 
-// =========================================================================
-// KOMPONEN "WRAPPER": Menangani logika loading dan pengecekan data
-// =========================================================================
+// Komponen "wrapper"
 export default function ScribePage() {
   const { context, isSDKLoaded } = useMiniApp();
   const user = context?.user;
 
-  // Tampilan utama
   const renderContent = () => {
-    // 1. Jika SDK masih loading
     if (!isSDKLoaded) {
       return (
         <div className="flex flex-col items-center justify-center text-center h-48">
@@ -128,24 +121,20 @@ export default function ScribePage() {
       );
     }
     
-    // 2. Jika SDK sudah siap, TAPI tidak ada user (dibuka di browser biasa)
     if (isSDKLoaded && !user) {
       return (
          <div className="text-center bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-md">
            <p className="text-yellow-800 dark:text-yellow-300 font-semibold">Authentication Required</p>
            <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-400">
-             Please open this app inside a Farcaster client like Warpcast to use this feature.
+             Please open this app inside a Farcaster client to use this feature.
            </p>
          </div>
       );
     }
     
-    // 3. Jika SDK siap DAN user ada, tampilkan form
     if (isSDKLoaded && user) {
       return <ScribeForm user={user} />;
     }
-
-    // Fallback (seharusnya tidak pernah tercapai)
     return null;
   };
 
