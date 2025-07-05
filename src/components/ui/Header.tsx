@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { APP_NAME } from "~/lib/constants";
 import sdk from "@farcaster/frame-sdk";
-import { useMiniApp } from "@neynar/react";
+// Impor custom hook baru kita
+import { useSafeMiniApp } from "~/hooks/useSafeMiniApp";
 
 type HeaderProps = {
   neynarUser?: {
@@ -13,7 +14,7 @@ type HeaderProps = {
   } | null;
 };
 
-// Komponen internal yang hanya akan dirender jika ada data pengguna
+// Komponen internal (tidak ada perubahan di sini)
 function UserProfile({ user, neynarUser }: { user: any, neynarUser?: HeaderProps['neynarUser'] }) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [hasClickedPfp, setHasClickedPfp] = useState(false);
@@ -72,17 +73,12 @@ function UserProfile({ user, neynarUser }: { user: any, neynarUser?: HeaderProps
 }
 
 
-// Komponen Header utama yang sudah diamankan
+// Komponen Header utama yang sudah diperbaiki
 export function Header({ neynarUser }: HeaderProps) {
-  // Gunakan try-catch untuk menangani error jika provider tidak ditemukan
-  let userContext = null;
-  try {
-    userContext = useMiniApp().context;
-  } catch (e) {
-    // Jika terjadi error (karena provider tidak ada), biarkan userContext tetap null.
-    // Ini akan mencegah crash saat build.
-  }
-  const user = userContext?.user;
+  // Panggil custom hook kita di level teratas.
+  // Ini akan mengembalikan `null` jika provider tidak ada, tanpa melanggar aturan hook.
+  const miniApp = useSafeMiniApp();
+  const user = miniApp?.context?.user;
 
   return (
     <div className="relative">
@@ -93,7 +89,7 @@ export function Header({ neynarUser }: HeaderProps) {
           Welcome to {APP_NAME}!
         </div>
         
-        {/* Bagian ini sekarang aman: hanya akan merender profil jika `user` berhasil didapatkan */}
+        {/* Logika ini sekarang aman dan tidak akan crash */}
         {user && <UserProfile user={user} neynarUser={neynarUser} />}
       </div>
     </div>
