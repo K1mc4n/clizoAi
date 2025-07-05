@@ -1,10 +1,12 @@
 // src/app/scribe/page.tsx
+"use client"; // <-- INI KUNCINYA. TAMBAHKAN BARIS INI.
+
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 
 // Impor komponen Scribe secara dinamis, dan matikan Server-Side Rendering (SSR)
 const ScribeClient = dynamic(() => import('./ScribeClient'), { 
-  ssr: false, // <-- Ini adalah kuncinya
+  ssr: false,
   loading: () => (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
