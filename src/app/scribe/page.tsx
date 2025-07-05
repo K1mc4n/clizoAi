@@ -1,8 +1,8 @@
 // src/app/scribe/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react'; // Impor useEffect
-import { useMiniApp } from '@neynar/react'; // Impor hook
+import { useState, useEffect } from 'react';
+import { useMiniApp } from '@neynar/react';
 import { supabase } from '~/lib/supabase';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
@@ -12,9 +12,12 @@ import { Textarea } from '~/components/ui/textarea';
 import { ImageUp, Link2 } from 'lucide-react';
 
 export default function ScribePage() {
-  // Gunakan hook untuk mendapatkan data user dan status SDK
-  const { user, isSDKLoaded } = useMiniApp(); 
-  
+  // **PERBAIKAN UTAMA DI SINI**
+  // Ambil `context` dan `isSDKLoaded` dari hook.
+  // `user` ada di dalam `context`.
+  const { context, isSDKLoaded } = useMiniApp();
+  const user = context?.user; // Akses user dari context, gunakan `?` untuk safety
+
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -22,18 +25,15 @@ export default function ScribePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // **PERBAIKAN 1: Isi nama author secara otomatis saat user data tersedia**
   useEffect(() => {
-    // Jika ada data user dan kolom nama masih kosong, isi otomatis
     if (user?.displayName && !author) {
       setAuthor(user.displayName);
     }
-  }, [user, author]); // Jalankan efek ini saat `user` berubah
+  }, [user, author]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // **PERBAIKAN 2: Pengecekan yang lebih aman**
     if (!isSDKLoaded) {
       alert('Farcaster client is not ready. Please wait a moment.');
       return;
@@ -50,7 +50,6 @@ export default function ScribePage() {
     setIsSubmitting(true);
     let imageUrl: string | null = null;
 
-    // ... (Logika upload gambar tetap sama) ...
     if (imageFile) {
       setIsUploading(true);
       const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
@@ -69,16 +68,15 @@ export default function ScribePage() {
       imageUrl = urlData.publicUrl;
     }
 
-    // Kirim data ke API backend Anda
     const response = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         content: content,
-        author_name: author || user.displayName || 'Anonymous', // Fallback berlapis
+        author_name: author || user.displayName || 'Anonymous',
         image_url: imageUrl,
         link_url: linkUrl,
-        author_fid: user.fid, // Kirim FID pengguna
+        author_fid: user.fid,
       }),
     });
 
@@ -87,7 +85,6 @@ export default function ScribePage() {
     if (response.ok) {
       alert('Your note has been posted!');
       setContent('');
-      // Jangan reset author, biarkan terisi untuk post selanjutnya
       setLinkUrl('');
       setImageFile(null);
       const fileInput = document.getElementById('image') as HTMLInputElement;
@@ -98,7 +95,6 @@ export default function ScribePage() {
     }
   };
 
-  // **PERBAIKAN 3: Tampilkan pesan loading jika SDK belum siap**
   if (!isSDKLoaded) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -116,7 +112,6 @@ export default function ScribePage() {
           <p className="mt-2 text-lg leading-8 text-gray-600 dark:text-gray-400">
             Share your thoughts, links, and images.
           </p>
-          {/* Tampilkan pesan jika user tidak terdeteksi */}
           {!user?.fid && (
              <p className="mt-4 text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-md">
                Please open this in a Farcaster client to post.
@@ -125,7 +120,6 @@ export default function ScribePage() {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
-          {/* ... (semua input dan textarea tetap sama) ... */}
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
               Your Note
@@ -161,4 +155,4 @@ export default function ScribePage() {
       <Footer />
     </div>
   );
-}
+      }
