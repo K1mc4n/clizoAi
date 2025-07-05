@@ -2,7 +2,7 @@
 
 "use client";
 
-// PERBAIKAN: Ganti nama impor 'dynamic' menjadi nama lain, misalnya 'dynamicImport'
+// Ganti nama impor 'dynamic' menjadi nama lain, misalnya 'dynamicImport'
 import dynamicImport from "next/dynamic"; 
 import { APP_NAME } from "~/lib/constants";
 import AppLoading from "~/components/AppLoading";
