@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   if (!neynarClientId) {
     console.error("Neynar Client ID is not configured. Features will be limited.");
-    return <WagmiProvider>{children}</WagmiProvider>;
+    return <WagmiProvider>{children}</WagmiProvider>; 
   }
   
   return (
