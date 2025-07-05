@@ -1,17 +1,10 @@
+// src/app/providers.tsx
 "use client";
 
-import { MiniAppProvider } from "@neynar/react";
-// Impor `WagmiProvider` secara langsung. Impor dinamis tidak diperlukan di sini
-// karena komponen provider itu sendiri ringan. Komponen yang menggunakannya yang perlu
-// dimuat secara dinamis.
-import WagmiProvider from "~/components/providers/WagmiProvider";
+import React from "react";
 
+// Versi Provider yang disederhanakan untuk debugging.
+// Ini akan menonaktifkan Wagmi dan Neynar sementara.
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <WagmiProvider>
-      <MiniAppProvider analyticsEnabled={true}>
-        {children}
-      </MiniAppProvider>
-    </WagmiProvider>
-  );
+  return <>{children}</>;
 }
