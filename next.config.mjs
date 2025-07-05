@@ -1,17 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Tambahkan konfigurasi webpack ini
   webpack: (config) => {
-    // Cari plugin Terser yang menyebabkan masalah
-    const terserPlugin = config.optimization.minimizer.find(
-      (plugin) => plugin.constructor.name === 'TerserPlugin'
-    );
-
-    // Jika pluginnya ada (seharusnya selalu ada saat build)
-    if (terserPlugin) {
-      // Beritahu Terser untuk MENGECUALIKAN file HeartbeatWorker
-      terserPlugin.options.exclude = /HeartbeatWorker/;
-    }
+    // Ini adalah solusi untuk error build Terser.
+    // Beberapa library (seperti WalletConnect) punya file worker
+    // yang tidak boleh di-minify ulang oleh Next.js.
+    // Konfigurasi ini memberitahu webpack untuk tidak menyentuhnya.
+    config.module.rules.push({
+      test: /HeartbeatWorker\.js$/,
+      loader: 'worker-loader',
+      options: {
+        filename: 'static/media/[name].[contenthash].js',
+      },
+    });
+    
+    // Ini juga penting untuk memastikan file worker tidak diproses dua kali.
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'worker-loader': false,
+    };
 
     return config;
   },
