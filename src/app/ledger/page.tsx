@@ -1,17 +1,54 @@
-// Lokasi: src/app/ledger/page.tsx
+// src/app/ledger/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
+import { Loader2 } from 'lucide-react'; // Impor ikon loader
 
-// Definisikan tipe data untuk setiap post
 interface Post {
   id: number;
   created_at: string;
   content: string;
   author_name: string;
 }
+
+// Komponen untuk satu kartu post (agar lebih rapi)
+const PostCard = ({ post }: { post: Post }) => (
+  <div className="bg-white dark:bg-gray-800/50 p-5 rounded-xl border border-gray-200 dark:border-gray-700/50 transition-shadow hover:shadow-lg">
+    <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap text-base leading-relaxed">
+      {post.content}
+    </p>
+    <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+      <div className="text-right">
+        <p className="font-semibold text-sm text-gray-700 dark:text-gray-300">
+          {post.author_name}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {new Date(post.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+// Komponen Skeleton untuk efek loading
+const PostCardSkeleton = () => (
+  <div className="bg-white dark:bg-gray-800/50 p-5 rounded-xl border border-gray-200 dark:border-gray-700/50">
+    <div className="space-y-3">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+    </div>
+    <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+    </div>
+  </div>
+);
 
 export default function LedgerPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -38,23 +75,33 @@ export default function LedgerPage() {
 
   return (
     <div>
-      <div className="mx-auto py-2 px-4 pb-20 max-w-2xl">
+      <div className="mx-auto max-w-2xl px-4 py-8 pb-24">
         <Header />
-        <h1 className="text-2xl font-bold text-center my-4">The Ledger</h1>
-        <p className="text-center text-gray-500 mb-6">Recent notes from the community.</p>
+        <div className="text-center my-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">The Ledger</h1>
+          <p className="mt-2 text-lg leading-8 text-gray-600 dark:text-gray-400">
+            Recent notes from the community.
+          </p>
+        </div>
 
-        {isLoading && <p className="text-center">Loading notes...</p>}
         {error && <p className="text-center text-red-500">Error: {error}</p>}
         
-        <div className="space-y-4">
-          {!isLoading && !error && posts.map((post) => (
-            <div key={post.id} className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-              <p className="text-gray-800 dark:text-gray-200">{post.content}</p>
-              <div className="text-right text-sm text-gray-500 mt-2">
-                - {post.author_name} on {new Date(post.created_at).toLocaleDateString()}
+        <div className="space-y-6">
+          {isLoading ? (
+            // Tampilkan beberapa skeleton saat loading
+            <>
+              <PostCardSkeleton />
+              <PostCardSkeleton />
+              <PostCardSkeleton />
+            </>
+          ) : (
+            // Tampilkan data post dengan animasi
+            posts.map((post) => (
+              <div key={post.id} className="animate-fade-in">
+                 <PostCard post={post} />
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
       <Footer />
