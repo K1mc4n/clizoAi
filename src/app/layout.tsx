@@ -1,15 +1,12 @@
-// src/app/layout.tsx
-
 import type { Metadata } from "next";
-import { Inter } from 'next/font/google'; // Impor dari next/font
+import { Inter } from 'next/font/google';
 import "~/app/globals.css";
 import { Providers } from "~/app/providers";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
 
-// Konfigurasi font Inter
 const inter = Inter({ 
   subsets: ['latin'],
-  display: 'swap', // Mencegah teks tak terlihat saat font dimuat
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -23,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.className}> {/* Terapkan kelas font ke <html> */}
+    <html lang="en" className={inter.className}>
       <body>
         <Providers>{children}</Providers>
       </body>
