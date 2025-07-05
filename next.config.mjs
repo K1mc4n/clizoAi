@@ -1,14 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    // Ini memberitahu webpack untuk TIDAK mencoba mem-parse file worker dari walletconnect.
-    // Ini adalah solusi langsung untuk error 'export' cannot be used outside of module code.
-    config.module.noParse = [
-      ...config.module.noParse || [],
-      /node_modules\/@walletconnect\/ethereum-provider\/dist\/esm\/HeartbeatWorker\.js/,
-    ];
-
-    // Mengembalikan konfigurasi yang sudah dimodifikasi
+  webpack: (config) => {
+    // Nonaktifkan minifikasi kode sama sekali.
+    // Ini akan membuat ukuran file output sedikit lebih besar,
+    // tapi ini adalah cara paling pasti untuk melewati error dari Terser.
+    config.optimization.minimize = false;
     return config;
   },
 };
