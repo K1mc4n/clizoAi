@@ -13,7 +13,7 @@ type HeaderProps = {
   } | null;
 };
 
-// Komponen internal yang hanya akan dirender jika ada user
+// Komponen internal yang hanya akan dirender jika ada data pengguna
 function UserProfile({ user, neynarUser }: { user: any, neynarUser?: HeaderProps['neynarUser'] }) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [hasClickedPfp, setHasClickedPfp] = useState(false);
@@ -71,14 +71,15 @@ function UserProfile({ user, neynarUser }: { user: any, neynarUser?: HeaderProps
   );
 }
 
-// Komponen Header utama
+
+// Komponen Header utama yang sudah diamankan
 export function Header({ neynarUser }: HeaderProps) {
-  // Gunakan try-catch untuk menangani error jika provider tidak ada
+  // Gunakan try-catch untuk menangani error jika provider tidak ditemukan
   let userContext = null;
   try {
     userContext = useMiniApp().context;
   } catch (e) {
-    // Biarkan userContext null jika provider tidak ditemukan.
+    // Jika terjadi error (karena provider tidak ada), biarkan userContext tetap null.
     // Ini akan mencegah crash saat build.
   }
   const user = userContext?.user;
@@ -92,7 +93,7 @@ export function Header({ neynarUser }: HeaderProps) {
           Welcome to {APP_NAME}!
         </div>
         
-        {/* Hanya render UserProfile jika user ada */}
+        {/* Bagian ini sekarang aman: hanya akan merender profil jika `user` berhasil didapatkan */}
         {user && <UserProfile user={user} neynarUser={neynarUser} />}
       </div>
     </div>
