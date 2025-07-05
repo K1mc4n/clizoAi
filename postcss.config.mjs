@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Biarkan kosong untuk menggunakan konfigurasi default Next.js
-  // yang biasanya sudah cukup pintar untuk menangani kebanyakan kasus.
+  // Opsi ini untuk menonaktifkan Terser yang menyebabkan error.
+  // Ini adalah jalan terakhir untuk melewati bug build yang spesifik.
+  swcMinify: false,
 };
 
 export default nextConfig;
