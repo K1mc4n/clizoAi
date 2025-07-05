@@ -36,10 +36,10 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^8",
     "eslint-config-next": "14.2.4",
-    "next": "^15.4.0-canary.114",
+    "next": "^14.2.30",
     "postcss": "^8",
-    "react": "^19.2.0-canary-5d87cd22-20250704",
-    "react-dom": "^19.2.0-canary-5d87cd22-20250704",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
