@@ -1,14 +1,16 @@
-// Lokasi: src/app/scribe/page.tsx
+// src/app/scribe/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { Header } from '~/components/ui/Header';
 import { Footer } from '~/components/ui/Footer';
+import { Button } from '~/components/ui/Button'; // Gunakan Button dari shadcn
+import { Input } from '~/components/ui/input'; // Gunakan Input dari shadcn
+import { Textarea } from '~/components/ui/textarea'; // Gunakan Textarea dari shadcn
 
 export default function ScribePage() {
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,15 +18,12 @@ export default function ScribePage() {
       alert('Please write something!');
       return;
     }
-    setIsLoading(true);
 
     const response = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: content, author_name: author }),
     });
-
-    setIsLoading(false);
 
     if (response.ok) {
       alert('Your note has been posted!');
@@ -37,46 +36,48 @@ export default function ScribePage() {
 
   return (
     <div>
-      <div className="mx-auto py-2 px-4 pb-20 max-w-2xl">
+      <div className="mx-auto max-w-2xl px-4 py-8 pb-24">
         <Header />
-        <h1 className="text-2xl font-bold text-center my-4">Scribe a Note</h1>
-        <p className="text-center text-gray-500 mb-6">Share your thoughts with the world.</p>
+        <div className="text-center my-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Scribe a Note</h1>
+          <p className="mt-2 text-lg leading-8 text-gray-600 dark:text-gray-400">
+            Share your thoughts with the world.
+          </p>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700/50">
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
               Your Note
             </label>
-            <textarea
+            <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={6}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600"
+              rows={8}
               placeholder="What's on your mind?"
+              required
             />
           </div>
           <div>
-            <label htmlFor="author" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="author" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
               Your Name (Optional)
             </label>
-            <input
+            <Input
               id="author"
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600"
               placeholder="Anonymous"
             />
           </div>
           <div>
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+              className="w-full text-base py-6" // Buat tombol lebih besar
             >
-              {isLoading ? 'Posting...' : 'Post Note'}
-            </button>
+              Post Note
+            </Button>
           </div>
         </form>
       </div>
